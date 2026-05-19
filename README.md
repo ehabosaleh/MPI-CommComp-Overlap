@@ -73,5 +73,7 @@ Size (Bytes)       Communication(us)  Computation(us)   Overall(us)        Overl
 
 ```
 
+You can find further information on how the microbenchmark works here:
 
+Saleh, E., Raoofy, A., Weidendorfer, J. (2026). Progressing Non-blocking Two-Sided Communication Using BlueField DPUs. In: Tomforde, S., Krupitzer, C., Vialle, S., Suarez, E., Pionteck, T. (eds) Architecture of Computing Systems. ARCS 2025. Lecture Notes in Computer Science, vol 15839. Springer, Cham. https://doi.org/10.1007/978-3-032-03281-2_1 
 
