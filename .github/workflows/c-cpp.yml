@@ -22,4 +22,4 @@ jobs:
         run: |
           chmod +x autogen.sh
           ./autogen.sh
-          mpirun -np 4 --use-hwthread-cpus  ./bin/neighbor-overlap-microbenchmark
+          mpirun -np 4 --use-hwthread-cpus  ./bin/NMPM
