@@ -6,7 +6,7 @@ project(NMPM
 
 find_package(MPI REQUIRED)
 
-add_library(nom STATIC
+add_library(nmpm STATIC
     src/nmpm.c
     src/grid.c
     src/compute.c
