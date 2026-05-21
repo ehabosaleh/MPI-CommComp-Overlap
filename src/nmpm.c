@@ -99,11 +99,10 @@ int run_overlap_benchmark(int rank, int size){
         	}
 
         	MPI_Barrier(MPI_COMM_WORLD);
-        	t_pure_total = 1e6 * t_pure / (MAX_ITER - SKIP);
+        	t_pure_total=1e6*t_pure/(MAX_ITER-SKIP);
 
 
-        	/* Phase-2:  communication + computation (overlap) */
-        	for (iter = 0; iter < MAX_ITER; iter++) {
+        	for(iter=0;iter<MAX_ITER;iter++) {
             		int req_count = 0;
             		double init_time = MPI_Wtime();
             		if(left != MPI_PROC_NULL) {
@@ -143,7 +142,6 @@ int run_overlap_benchmark(int rank, int size){
         	tcomp_total = (tcomp_total*1e6)/(MAX_ITER-SKIP);
         	t_ovrl_total= (t_ovrl_total*1e6)/(MAX_ITER-SKIP);
 
-        	/* Overlap ratio */
         	overlap = 100.0 * fmax(0.0,fmin(1.0,(t_pure_total+tcomp_total-t_ovrl_total)/fmin(t_pure_total, tcomp_total)));
 
         	MPI_Reduce(&overlap,&overlap_avr,1, MPI_DOUBLE, MPI_SUM,0, MPI_COMM_WORLD);
