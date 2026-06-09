@@ -1,9 +1,9 @@
 #ifndef COMPUTE_H
 #define COMPUTE_H
 
-#define DIM 50
+#define DIM 25
 
-extern float **a;
+extern float *a;
 extern float *x;
 extern float *y;
 
