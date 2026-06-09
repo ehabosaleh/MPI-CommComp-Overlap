@@ -3,7 +3,7 @@
 #include <math.h>
 #include <mpi.h>
 
-#include "nom.h"
+#include "nmpm.h"
 
 int main(int argc, char *argv[]){
 	int rank, size;
