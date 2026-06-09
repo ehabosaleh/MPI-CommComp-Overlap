@@ -5,7 +5,7 @@ find_package(MPI REQUIRED)
 
 add_library(nmpm STATIC
     src/nmpm.c
-    src/grid.c
+    src/grid2d.c
     src/compute.c
 )
 
