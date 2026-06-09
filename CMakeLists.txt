@@ -3,39 +3,39 @@ project(Neighbor-Overlap-Microbenchmark C)
 
 find_package(MPI REQUIRED)
 
-add_library(nom STATIC
-    src/nom.c
+add_library(nmpm STATIC
+    src/nmpm.c
     src/grid.c
     src/compute.c
 )
 
-target_include_directories(nom PUBLIC
+target_include_directories(nmpm PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_compile_features(nom PUBLIC c_std_11)
+target_compile_features(nmpm PUBLIC c_std_11)
 
-target_compile_options(nom PRIVATE
+target_compile_options(nmpm PRIVATE
     -O3 -Wall -Wextra -Wno-unused-parameter -fPIC
 )
 
-target_link_libraries(nom PUBLIC
+target_link_libraries(nmpm PUBLIC
     MPI::MPI_C
     pthread
     m
 )
 
-add_executable(neighbor-overlap-microbenchmark
+add_executable(test
     src/main/main.c
 )
 
-target_link_libraries(neighbor-overlap-microbenchmark PRIVATE nom)
+target_link_libraries(test PRIVATE nmpm)
 
-install(TARGETS nom
+install(TARGETS nmpm
     ARCHIVE DESTINATION lib
 )
 
-install(TARGETS neighbor-overlap-microbenchmark
+install(TARGETS test
     RUNTIME DESTINATION bin
 )
 
