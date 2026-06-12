@@ -5,16 +5,16 @@
 #include<compute.h>
 
 int run_overlap_benchmark(int rank, int size){
-	int iter;
+		int iter;
     	double t_pure=0, t_pure_total=0;
     	double tcomp=0, tcomp_total=0;
     	double t_ovrl=0, t_ovrl_total=0;
     	double overlap=0, overlap_avr=0;
     	double t_pure_total0=0, tcomp_total0=0, t_ovrl_total0=0;
-	int left=0,right=0,top=0,bottom=0;
-	int dims[2], coords[2];
+		int left=0,right=0,top=0,bottom=0;
+		int dims[2], coords[2];
 
-	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+		MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     	MPI_Comm_size(MPI_COMM_WORLD,&size);
 
     	int sqrt_size = (int)sqrt((double)size);
