@@ -76,7 +76,6 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 			coordinates(dims,coords,rank,size,3);
 			num_neighbors=6;
 			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,3);
-			is_3d=1;
 		}
 		else if(dim==2){
 			coordinates(dims,coords,rank,size,2);
