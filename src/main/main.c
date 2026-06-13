@@ -14,6 +14,15 @@ int main(int argc, char *argv[]){
                 return -1;
             }
         }
+        else if(strncmp(argv[i],"--ratio=",8)==0){
+            compToPureCommRatio=atoi(argv[i]+8);
+            if(compToPureCommRatio<0){
+                if(i==0){
+                    fprintf(stderr, "Invalid CompToPureCommRatio specified. Use a non-negative integer.\n");
+                }
+                return -1;
+            }
+        }
         else if(strcmp(argv[i],"--help")==0){
             usage(argv[0]);
             return 0;
