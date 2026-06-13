@@ -7,9 +7,9 @@ int main(int argc, char *argv[]){
     for(int i=0;i<argc;i++){
         if(strncmp(argv[i],"--dim=",6)==0 ){
             dim=atoi(argv[i]+6);
-            if(dim!=2 && dim!=3){
+            if(dim!=2 && dim!=3&& dim!=1){
                 if(i==0){
-                    fprintf(stderr, "Invalid dimension specified. Use 2 for 2D grid or 3 for 3D grid.\n");
+                    fprintf(stderr, "Invalid dimension specified. Use 1 for 1D grid, 2 for 2D grid or 3 for 3D grid.\n");
                 }
                 return -1;
             }
