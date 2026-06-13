@@ -1,8 +1,5 @@
 #include"nmpm.h"
-#include<math.h>
-#include<stdlib.h>
-#include<stdio.h>
-#include<compute.h>
+#include"compute.h"
 void usage(char *prog_name) {
 	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P]\n", prog_name);
 	fprintf(stderr, "  <dim>: 2 for 2D grid, 3 for 3D grid\n");

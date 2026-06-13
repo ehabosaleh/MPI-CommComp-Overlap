@@ -1,7 +1,11 @@
 #ifndef NMPM_H
 #define NMPM_H
 
-#include<mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <mpi.h>
+
 
 #ifndef MAX_ITER
 #define MAX_ITER 200
