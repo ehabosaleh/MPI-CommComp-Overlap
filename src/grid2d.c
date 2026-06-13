@@ -1,5 +1,5 @@
 #include <math.h>
-#include "grid.h"
+#include "grid2d.h"
 
 void update_grid(double **u, double **u_new, int rows, int cols)
 {
