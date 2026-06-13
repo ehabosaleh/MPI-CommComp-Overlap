@@ -35,7 +35,7 @@ static void coordinates(int*dims,int*coords, int rank,int size, int is_3d){
 		coords[2] = 0;
 	}
 }
-static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*top, int *dims, int*coords, int is_3d){
+static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*top, int *dims, int*coords, int rank, int is_3d){
 	if(is_3d){
 		*left = (coords[2]==0) ? MPI_PROC_NULL : rank - 1;
 		*right = (coords[2]==dims[2]-1) ? MPI_PROC_NULL : rank + 1;
@@ -66,18 +66,16 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
 		MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 		MPI_Comm_size(MPI_COMM_WORLD,&size);
-		MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    	MPI_Comm_size(MPI_COMM_WORLD,&size);
 		if(dim==3){
 			coordinates(dims,coords,rank,size,1);
 			num_neighbors=6;
-			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,1);
+			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,1);
 			is_3d=1;
 		}
 		else if(dim==2){
 			coordinates(dims,coords,rank,size,0);
 			num_neighbors=4;
-			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,0);
+			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,0);
 		}
 	
     	init_arrays();
