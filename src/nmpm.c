@@ -35,8 +35,12 @@ static void coordinates(int*dims,int*coords, int rank,int size, int dim){
 		coords[2] = 0;
 	}
 	else if(dim==1){
-
+		dims[0] = size;
+		coords[0] = rank;
+		coords[1] = 0;
+		coords[2] = 0;
 	}
+	
 }
 static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*top, int *dims, int*coords, int rank, int dim){
 	if(dim==3){
