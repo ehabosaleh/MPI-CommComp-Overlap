@@ -5,8 +5,8 @@ void usage(char *prog_name) {
 	fprintf(stderr, "  --dim: 2 for 2D grid, 3 for 3D grid\n");
 	fprintf(stderr, "  --ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
 }
-static void coordinates(int*dims,int*coords, int rank,int size, int is_3d){ 
-	if(is_3d){
+static void coordinates(int*dims,int*coords, int rank,int size, int dim){ 
+	if(dim==3){
 		dims[0] = dims[1] = dims[2] = (int)cbrt((double)size);
 		int cbrt_size = (int)cbrt((double)dims[0]*dims[1]*dims[2]);
 		if (cbrt_size * cbrt_size * cbrt_size != size) {
@@ -20,7 +20,7 @@ static void coordinates(int*dims,int*coords, int rank,int size, int is_3d){
 		coords[1] = (rank % (cbrt_size * cbrt_size)) / cbrt_size;
 		coords[2] = rank % cbrt_size;
 	}
-	else{
+	else if(dim==2){
 		dims[0] = dims[1] = (int)sqrt((double)size);
 		int sqrt_size = (int)sqrt((double)dims[0]*dims[1]);
 		if(sqrt_size * sqrt_size != size) {
@@ -34,9 +34,12 @@ static void coordinates(int*dims,int*coords, int rank,int size, int is_3d){
 		coords[1] = rank % sqrt_size;
 		coords[2] = 0;
 	}
+	else if(dim==1){
+
+	}
 }
-static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*top, int *dims, int*coords, int rank, int is_3d){
-	if(is_3d){
+static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*top, int *dims, int*coords, int rank, int dim){
+	if(dim==3){
 		*left = (coords[2]==0) ? MPI_PROC_NULL : rank - 1;
 		*right = (coords[2]==dims[2]-1) ? MPI_PROC_NULL : rank + 1;
 		*front = (coords[1]==0) ? MPI_PROC_NULL : rank - dims[2];
@@ -44,11 +47,15 @@ static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*
 		*bottom = (coords[0]==dims[0]-1) ? MPI_PROC_NULL : rank + dims[2]*dims[1];
 		*top = (coords[0]==0) ? MPI_PROC_NULL : rank - dims[2]*dims[1];
 	}
-	else{
+	else if(dim==2){
 		*left = (coords[1]==0) ? MPI_PROC_NULL : rank - 1;
 		*right = (coords[1]==dims[1]-1) ? MPI_PROC_NULL : rank + 1;
 		*top = (coords[0]==0) ? MPI_PROC_NULL : rank - dims[1];
 		*bottom = (coords[0]==dims[0]-1) ? MPI_PROC_NULL : rank + dims[1];
+	}
+	else if(dim==1){
+		*left = (coords[0]==0) ? MPI_PROC_NULL : rank - 1;
+		*right = (coords[0]==dims[0]-1) ? MPI_PROC_NULL : rank + 1;
 	}
 
 }
@@ -60,31 +67,37 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
     	double overlap=0, overlap_avr=0;
     	double t_pure_total0=0, tcomp_total0=0, t_ovrl_total0=0;
 		int dims[3], coords[3];
-		int is_3d=0;
 		int num_neighbors;
 		int left, right, front, back, bottom, top;
 
 		MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 		MPI_Comm_size(MPI_COMM_WORLD,&size);
 		if(dim==3){
-			coordinates(dims,coords,rank,size,1);
+			coordinates(dims,coords,rank,size,3);
 			num_neighbors=6;
-			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,1);
+			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,3);
 			is_3d=1;
 		}
 		else if(dim==2){
-			coordinates(dims,coords,rank,size,0);
+			coordinates(dims,coords,rank,size,2);
 			num_neighbors=4;
-			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,0);
+			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,2);
 		}
-	
+		else if(dim==1){
+			coordinates(dims,coords,rank,size,1);
+			num_neighbors=2;
+			find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,1);
+		}
+
     	init_arrays();
 
     	if (rank==0) {
-			if (is_3d) {
+			if (dim==3) {
 				printf("Running 3D benchmark with grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
-			} else {
+			} else if(dim==2){
 				printf("Running 2D benchmark with grid %dx%d\n", dims[0], dims[1]);
+			} else if(dim==1){
+				printf("Running 1D benchmark with grid %d\n", dims[0]);
 			}
         	printf("%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","CompToCommRatio %","Overall","Overlapping %");
     	}
@@ -111,7 +124,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
         	for (iter =0; iter< MAX_ITER; iter++){
             		int req_count=0;
             		double init_time=MPI_Wtime();
-            		if (is_3d) {
+            		if (dim==3) {
 
 						if(left != MPI_PROC_NULL) {
 							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
@@ -137,7 +150,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 							MPI_Isend(send_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
 							MPI_Irecv(recv_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
 						}
-            		} else {
+            		} else if(dim==2){ 
 
 						if(left != MPI_PROC_NULL) {
 							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
@@ -156,6 +169,16 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 							MPI_Irecv(recv_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
 						}
             		}
+					else if(dim==1){
+						if(left != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(right != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+					}
 
             		MPI_Waitall(req_count, reqs, MPI_STATUSES_IGNORE);
 
@@ -173,7 +196,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
             		int req_count = 0;
             		double init_time = MPI_Wtime();
             		
-            		if (is_3d) {
+            		if (dim==3) {
 
 						if(left != MPI_PROC_NULL) {
 							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
@@ -199,7 +222,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 							MPI_Isend(send_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
 							MPI_Irecv(recv_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
 						}
-            		} else {
+            		} else if(dim==2) {
 
 						if(left != MPI_PROC_NULL) {
 							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
@@ -217,7 +240,17 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 							MPI_Isend(send_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
 							MPI_Irecv(recv_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
 						}
-            		}
+            		} else if(dim==1){
+						if(left != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD	, &reqs[req_count++]);
+						}
+						if(right != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+					}
+
             		double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_total;
             		double tcomp_start = MPI_Wtime();
             		compute_on_host((targetComputeTime/1e6));
