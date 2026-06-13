@@ -40,7 +40,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 			int sqrt_size = (int)sqrt((double)size);
 			if (sqrt_size * sqrt_size != size) {
 				if (rank == 0) {
-					fprintf(stderr, "Number of processes must be a perfect square or perfect cube\n");
+					fprintf(stderr, "Number of processes must be a perfect square for 2D grid\n");
 				}
 				MPI_Finalize();
 				return -1;

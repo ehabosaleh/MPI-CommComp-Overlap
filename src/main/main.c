@@ -1,8 +1,8 @@
 #include "nmpm.h"
 
 int main(int argc, char *argv[]){
-    int dim = 2; 
-    int compToPureCommRatio=100;
+    int dim = DIM; 
+    int compToPureCommRatio=COMP_TO_COMM_RATIO;
     for(int i=0;i<argc;i++){
         if(strncmp(argv[i],"--dim=",6)==0 ){
             dim=atoi(argv[i]+6);
