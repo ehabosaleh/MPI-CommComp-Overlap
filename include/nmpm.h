@@ -20,7 +20,7 @@
 #define MIN_MESSAGE_SIZE (1 << 0)
 #endif
 
-
+void usage(char *prog_name);
 int run_overlap_benchmark(int rank,int size, int dim, int compToPureCommRatio);
 
 #endif

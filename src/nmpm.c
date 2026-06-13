@@ -3,7 +3,11 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<compute.h>
-
+void usage(char *prog_name) {
+	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P]\n", prog_name);
+	fprintf(stderr, "  <dim>: 2 for 2D grid, 3 for 3D grid\n");
+	fprintf(stderr, "  <ratio>: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
+}
 int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 		int iter;
     	double t_pure=0, t_pure_total=0;
@@ -60,7 +64,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 			} else {
 				printf("Running 2D benchmark with grid %dx%d\n", dims[0], dims[1]);
 			}
-        	printf("%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","CompToCommRatio(%)","Overall","Overlapping %");
+        	printf("%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","CompToCommRatio %","Overall","Overlapping %");
     	}
 
     	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
