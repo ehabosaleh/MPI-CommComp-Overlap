@@ -1,7 +1,7 @@
 #ifndef COMPUTE_H
 #define COMPUTE_H
 
-#define DIM 25
+#define ARRAY_DIM 5
 
 extern float *a;
 extern float *x;
