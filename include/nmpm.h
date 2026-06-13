@@ -25,7 +25,7 @@
 #endif
 
 #ifndef DIM
-#define DIM 2
+#define DIM 1
 #endif
 
 #ifndef COMP_TO_COMM_RATIO
