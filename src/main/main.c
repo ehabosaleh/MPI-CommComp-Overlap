@@ -4,11 +4,11 @@ int main(int argc, char *argv[]){
     int dim = 2; 
     int compToPureCommRatio=100;
     for(int i=0;i<argc;i++){
-        if(strcmp(argv[i],"--dim")==0 && i+1<argc){
-            dim=atoi(argv[i+1]);
+        if(strncmp(argv[i],"--dim=",6)==0 ){
+            dim=atoi(argv[i]+6);
         }
-        else if(strcmp(argv[i],"--ratio")==0 && i+1<argc){
-            compToPureCommRatio=atoi(argv[i+1]);
+        else if(strncmp(argv[i],"--ratio=",8)==0){
+            compToPureCommRatio=atoi(argv[i]+8);
         }
         else if(strcmp(argv[i],"--help")==0){
             usage(argv[0]);
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
     MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-    run_overlap_benchmark(rank,size,dim, compToPureCommRatio);
+    run_overlap_benchmark(rank,size,dim,compToPureCommRatio);
 
     MPI_Finalize();
     return 0;
