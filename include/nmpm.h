@@ -21,7 +21,7 @@
 #endif
 
 
-int run_overlap_benchmark(int rank,int size);
+int run_overlap_benchmark(int rank,int size, int dim, int compToPureCommRatio);
 
 #endif
 

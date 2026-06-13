@@ -4,7 +4,7 @@
 #include<stdio.h>
 #include<compute.h>
 
-int run_overlap_benchmark(int rank, int size, int dim){
+int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 		int iter;
     	double t_pure=0, t_pure_total=0;
     	double tcomp=0, tcomp_total=0;
@@ -60,7 +60,7 @@ int run_overlap_benchmark(int rank, int size, int dim){
 			} else {
 				printf("Running 2D benchmark with grid %dx%d\n", dims[0], dims[1]);
 			}
-        	printf("%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","Overall","Overlapping %");
+        	printf("%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","CompToCommRatio(%)","Overall","Overlapping %");
     	}
 
     	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
@@ -212,9 +212,9 @@ int run_overlap_benchmark(int rank, int size, int dim){
 							MPI_Irecv(recv_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
 						}
             		}
-            		
+            		double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_total;
             		double tcomp_start = MPI_Wtime();
-            		compute_on_host(t_pure_total/1e6);
+            		compute_on_host((targetComputeTime/1e6));
             		tcomp = MPI_Wtime()-tcomp_start;
 
             		MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
@@ -244,7 +244,7 @@ int run_overlap_benchmark(int rank, int size, int dim){
             		t_ovrl_total0/= size;
             		overlap_avr/= size;
 
-            		printf("%-20ld%-20.3f%-20.3f%-20.3f%-20.3f\n",local_N, t_pure_total0, tcomp_total0, t_ovrl_total0, overlap_avr);
+            		printf("%-20ld%-20.3f%-20.3f%-20d%-20.3f%-20.3f\n",local_N, t_pure_total0, tcomp_total0,compToPureCommRatio, t_ovrl_total0, overlap_avr);
         	}
 
         	overlap_avr=0;
