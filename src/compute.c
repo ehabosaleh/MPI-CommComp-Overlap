@@ -25,17 +25,24 @@ void init_arrays(void){
 	
 
 }
-void compute_on_host(double latency){
+void compute_on_host(double latency, int size_threshold){
 	int i,j;
 
 	double sum=0;
 	double ccompute_start=MPI_Wtime();
 	double ccompute_end=ccompute_start;
-	while((ccompute_end-ccompute_start)<latency){
-		for(i=0;i<ARRAY_DIM;i++)
-			for(j=0;j<ARRAY_DIM;j++)
-				x[i]=x[i]+A*a[i*ARRAY_DIM+j]*y[j];
-		ccompute_end=MPI_Wtime();
+	if(size_threshold>=SIZE_THRESHOLD)
+		while((ccompute_end-ccompute_start)<latency){
+				for(i=0;i<ARRAY_DIM;i++)
+					for(j=0;j<ARRAY_DIM;j++)
+						x[i]=x[i]+A*a[i*ARRAY_DIM+j]*y[j];
+				ccompute_end=MPI_Wtime();
+		}
+	else{
+		while((ccompute_end-ccompute_start)<latency){
+				usleep(1);
+				ccompute_end=MPI_Wtime();
+		}
 	}
 }
 

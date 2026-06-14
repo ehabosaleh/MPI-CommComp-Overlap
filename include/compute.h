@@ -3,6 +3,7 @@
 
 #define ARRAY_DIM 25
 #define A 2.0
+#define SIZE_THRESHOLD 65536
 extern float *a;
 extern float *x;
 extern float *y;
