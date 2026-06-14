@@ -40,7 +40,7 @@ void compute_on_host(double latency, int size_threshold){
 		}
 	else{
 		while((ccompute_end-ccompute_start)<latency){
-				usleep(1);
+				x[0]=x[0]+A*a[0]*y[0];
 				ccompute_end=MPI_Wtime();
 		}
 	}
