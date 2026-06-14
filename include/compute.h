@@ -10,6 +10,6 @@ extern float *y;
 
 void init_arrays(void);
 
-void compute_on_host(double latency);
+void compute_on_host(double latency, int size_threshold);
 
 #endif
