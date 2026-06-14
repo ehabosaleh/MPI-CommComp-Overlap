@@ -98,11 +98,11 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
     	if (rank==0) {
 			if (dim==3) {
-				printf("Running 3D benchmark with grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
+				printf("\nRunning 3D benchmark with grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
 			} else if(dim==2){
-				printf("Running 2D benchmark with grid %dx%d\n", dims[0], dims[1]);
+				printf("\nRunning 2D benchmark with grid %dx%d\n", dims[0], dims[1]);
 			} else if(dim==1){
-				printf("Running 1D benchmark with grid %d\n", dims[0]);
+				printf("\nRunning 1D benchmark with grid %d\n", dims[0]);
 			}
         	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
     	}
