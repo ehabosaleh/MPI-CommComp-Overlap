@@ -70,7 +70,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
     	double overlap=0.0;
     	double  t_pure_global=0.0, t_compute_global=0.0, t_ovrl_global=0.0;
 		double t_comp=0.0,t_ovrl=0.0;
-		
+
 		int dims[3], coords[3];
 		int num_neighbors;
 		int left=MPI_PROC_NULL, right=MPI_PROC_NULL, front=MPI_PROC_NULL, back=MPI_PROC_NULL, bottom=MPI_PROC_NULL, top=MPI_PROC_NULL;
@@ -275,7 +275,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
         	if(rank == 0) {
 					double actualRatio=100.0*(t_compute_global/t_pure_global);
 					overlap= 100.0 * fmax(0.0,fmin(1.0,(t_pure_global+t_compute_global-t_ovrl_global)/fmin(t_pure_global, t_compute_global)));
-            		printf("%-20ld%-20.3f%-20.3f%-20.3f%-20.3f%-20.3f%-20.3f\n",local_N, t_pure_global, t_compute_global,actualRatio,compToPureCommRatio, t_ovrl_global, overlap);
+            		printf("%-20ld%-20.3f%-20.3f%-20.3f%-20d%-20.3f%-20.3f\n",local_N, t_pure_global, t_compute_global,actualRatio,compToPureCommRatio, t_ovrl_global, overlap);
         	}
 			t_comp_total=0;
 			t_ovrl_total=0;
