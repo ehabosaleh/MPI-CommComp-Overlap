@@ -253,7 +253,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
             		double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
             		double tcomp_start = MPI_Wtime();
-            		compute_on_host((targetComputeTime/1e6));
+            		compute_on_host((targetComputeTime/1e6),local_N);
             		t_comp = MPI_Wtime()-tcomp_start;
 
             		MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
