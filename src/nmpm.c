@@ -5,7 +5,7 @@ void usage(char *prog_name) {
 	fprintf(stderr, "  --dim: 2 for 2D grid, 3 for 3D grid\n");
 	fprintf(stderr, "  --ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
 }
-static void coordinates(int*dims,int*coords, int rank,int size, int dim){ 
+static int coordinates(int*dims,int*coords, int rank,int size, int dim){ 
 	if(dim==3){
 		dims[0] = dims[1] = dims[2] = (int)cbrt((double)size);
 		int cbrt_size = (int)cbrt((double)dims[0]*dims[1]*dims[2]);
@@ -21,8 +21,8 @@ static void coordinates(int*dims,int*coords, int rank,int size, int dim){
 		coords[2] = rank % cbrt_size;
 	}
 	else if(dim==2){
-		dims[0] = dims[1] = (int)sqrt((double)size);
-		int sqrt_size = (int)sqrt((double)dims[0]*dims[1]);
+		dims[0]=dims[1]=(int)sqrt((double)size);
+		int sqrt_size=(int)sqrt((double)dims[0]*dims[1]);
 		if(sqrt_size * sqrt_size != size) {
 				if (rank == 0) {
 					fprintf(stderr, "Number of processes must be a perfect square for 2D grid\n");
@@ -40,7 +40,8 @@ static void coordinates(int*dims,int*coords, int rank,int size, int dim){
 		coords[1] = 0;
 		coords[2] = 0;
 	}
-	
+	return 0;
+
 }
 static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*top, int *dims, int*coords, int rank, int dim){
 	if(dim==3){
@@ -65,17 +66,16 @@ static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*
 }
 int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 		int iter;
-    	double t_pure=0, t_pure_total=0;
-    	double tcomp=0, tcomp_total=0;
-    	double t_ovrl=0, t_ovrl_total=0;
-    	double overlap=0, overlap_avr=0;
-    	double t_pure_total0=0, tcomp_total0=0, t_ovrl_total0=0;
+    	double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
+    	double overlap=0.0;
+    	double  t_pure_global=0.0, t_compute_global=0.0, t_ovrl_global=0.0;
 		int dims[3], coords[3];
 		int num_neighbors;
-		int left, right, front, back, bottom, top;
+		int left=MPI_PROC_NULL, right=MPI_PROC_NULL, front=MPI_PROC_NULL, back=MPI_PROC_NULL, bottom=MPI_PROC_NULL, top=MPI_PROC_NULL;
 
 		MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 		MPI_Comm_size(MPI_COMM_WORLD,&size);
+		
 		if(dim==3){
 			coordinates(dims,coords,rank,size,3);
 			num_neighbors=6;
@@ -102,7 +102,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 			} else if(dim==1){
 				printf("Running 1D benchmark with grid %d\n", dims[0]);
 			}
-        	printf("%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","CompToCommRatio %","Overall","Overlapping %");
+        	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
     	}
 
     	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
@@ -119,13 +119,9 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
             		recv_buffers[i][j] = 'a' + i;
         		}
         	}
-
-        	t_pure=0;
-        	t_pure_total=0;
-        	tcomp_total=0;
-        	t_ovrl_total=0;
         	for (iter =0; iter< MAX_ITER; iter++){
             		int req_count=0;
+					MPI_Barrier(MPI_COMM_WORLD);
             		double init_time=MPI_Wtime();
             		if (dim==3) {
 
@@ -185,18 +181,17 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
             		MPI_Waitall(req_count, reqs, MPI_STATUSES_IGNORE);
 
-            		if(iter>SKIP) {
-                		t_pure += MPI_Wtime() - init_time;
+            		if(iter>=SKIP) {
+                		t_pure_total += MPI_Wtime()-init_time;
             		}
-            		MPI_Barrier(MPI_COMM_WORLD);
+            		
         	}
-
-        	MPI_Barrier(MPI_COMM_WORLD);
-        	t_pure_total = 1e6 * t_pure / (MAX_ITER - SKIP);
-
+        	t_pure_total = 1e6 * t_pure_total/(MAX_ITER-SKIP);
+			MPI_Allreduce(&t_pure_total, &t_pure_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
         	for (iter = 0; iter < MAX_ITER; iter++) {
             		int req_count = 0;
+					MPI_Barrier(MPI_COMM_WORLD);
             		double init_time = MPI_Wtime();
             		
             		if (dim==3) {
@@ -254,7 +249,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 						}
 					}
 
-            		double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_total;
+            		double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
             		double tcomp_start = MPI_Wtime();
             		compute_on_host((targetComputeTime/1e6));
             		tcomp = MPI_Wtime()-tcomp_start;
@@ -263,38 +258,30 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
             		t_ovrl=MPI_Wtime()-init_time;
 
-            		if(iter>SKIP) {
-                		tcomp_total += tcomp;
+            		if(iter>=SKIP){
+                		t_comp_total += tcomp;
                 		t_ovrl_total += t_ovrl;
             		}
-            		MPI_Barrier(MPI_COMM_WORLD);
         	}
 
-        	tcomp_total = (tcomp_total*1e6)/(MAX_ITER-SKIP);
+        	t_comp_total = (t_comp_total*1e6)/(MAX_ITER-SKIP);
         	t_ovrl_total= (t_ovrl_total*1e6)/(MAX_ITER-SKIP);
-
-        	overlap = 100.0 * fmax(0.0,fmin(1.0,(t_pure_total+tcomp_total-t_ovrl_total)/fmin(t_pure_total, tcomp_total)));
-
-        	MPI_Reduce(&overlap,&overlap_avr,1, MPI_DOUBLE, MPI_SUM,0, MPI_COMM_WORLD);
-        	MPI_Reduce(&t_ovrl_total,&t_ovrl_total0,1, MPI_DOUBLE, MPI_SUM,0, MPI_COMM_WORLD);
-        	MPI_Reduce(&tcomp_total,&tcomp_total0, 1, MPI_DOUBLE, MPI_SUM,0, MPI_COMM_WORLD);
-       		MPI_Reduce(&t_pure_total,&t_pure_total0,1, MPI_DOUBLE, MPI_SUM,0, MPI_COMM_WORLD);
+		
+			MPI_Allreduce(&t_comp_total, &t_compute_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+			MPI_Allreduce(&t_ovrl_total, &t_ovrl_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
         	if(rank == 0) {
-            		t_pure_total0/= size;
-            		tcomp_total0 /= size;
-            		t_ovrl_total0/= size;
-            		overlap_avr/= size;
-
-            		printf("%-20ld%-20.3f%-20.3f%-20d%-20.3f%-20.3f\n",local_N, t_pure_total0, tcomp_total0,compToPureCommRatio, t_ovrl_total0, overlap_avr);
+					double actualRatio=100.0*(t_compute_global/t_pure_global);
+					overlap= 100.0 * fmax(0.0,fmin(1.0,(t_pure_global+t_compute_global-t_ovrl_global)/fmin(t_pure_global, t_compute_global)));
+            		printf("%-20ld%-20.3f%-20.3f%-20.3f%-20.3f%-20.3f%-20.3f\n",local_N, t_pure_global, t_compute_global,actualRatio,compToPureCommRatio, t_ovrl_global, overlap);
         	}
-
-        	overlap_avr=0;
-        	tcomp_total=0;
-        	t_ovrl_total=0;
-        	t_pure_total0=0;
-        	tcomp_total0=0;
-        	t_ovrl_total0=0;
+			t_comp_total=0;
+			t_ovrl_total=0;
+			t_pure_total=0;
+			t_pure_global=0;
+			t_compute_global=0;
+			t_ovrl_global=0;
+			overlap=0;
 
         	for (int i = 0; i < 6; i++) {
         		free(send_buffers[i]);
