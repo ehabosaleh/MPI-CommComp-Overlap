@@ -2,7 +2,7 @@
 #define COMPUTE_H
 
 #define ARRAY_DIM 25
-
+#define A 2.0
 extern float *a;
 extern float *x;
 extern float *y;
