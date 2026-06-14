@@ -38,17 +38,25 @@ static void compute_bound_step(const long N){
 }
 
 void compute_on_host(double latency){
-	int i,j;
+	int i,j,k;
 	double ccompute_start=0;
 	double ccompute_total=0;
 	
 	while(ccompute_total<latency){
 		ccompute_start=MPI_Wtime();
 		
-		for(i=0;i<ARRAY_DIM;i++)
-			for(j=0;j<ARRAY_DIM;j++)
-				x[i]=x[i]+a[i*ARRAY_DIM+j]*a[i*ARRAY_DIM+j]+y[j];
-		
+		for(k=0; k<4; k++){
+			for(i=0; i<ARRAY_DIM; i++){
+				double sum = 0.0;
+				for(j=0; j<ARRAY_DIM; j++){
+					double val = a[i*ARRAY_DIM+j];
+					/* More FLOPs: multiply, add, square operations */
+					sum += val * val + val * y[j] - x[j] * y[j];
+					sum = sum * 0.99999 + val;
+				}
+				x[i] = sum;
+			}
+		}
 
 		ccompute_total+=MPI_Wtime()-ccompute_start;
 	}
