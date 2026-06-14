@@ -44,12 +44,11 @@ void compute_on_host(double latency){
 	
 	while(ccompute_total<latency){
 		ccompute_start=MPI_Wtime();
-		/*
+		
 		for(i=0;i<ARRAY_DIM;i++)
 			for(j=0;j<ARRAY_DIM;j++)
 				x[i]=x[i]+a[i*ARRAY_DIM+j]*a[i*ARRAY_DIM+j]+y[j];
-		*/
-		compute_bound_step(1000);
+		
 
 		ccompute_total+=MPI_Wtime()-ccompute_start;
 	}
