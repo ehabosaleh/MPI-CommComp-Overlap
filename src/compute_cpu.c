@@ -1,6 +1,6 @@
 #include<stdlib.h>
 #include<mpi.h>
-#include"compute.h"
+#include"compute_cpu.h"
 
 
 float *a=NULL;

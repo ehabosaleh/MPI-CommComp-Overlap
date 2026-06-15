@@ -5,7 +5,7 @@ find_package(MPI REQUIRED)
 
 add_library(nmpm STATIC
     src/nmpm.c
-    src/compute.c
+    src/compute_cpu.c
 )
 
 target_include_directories(nmpm PUBLIC

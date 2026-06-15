@@ -1,5 +1,5 @@
-#ifndef COMPUTE_H
-#define COMPUTE_H
+#ifndef COMPUTE_CPU_H
+#define COMPUTE_CPU_H
 
 #define ARRAY_DIM 25
 #define A 2.0
