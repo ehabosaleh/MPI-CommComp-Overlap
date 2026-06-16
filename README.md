@@ -33,13 +33,13 @@ Interpretation:
 - Reports:
   - pure communication time  
   - pure computation time  
-  - combined time  
+  - combined time
+  - actual computation to pure communication ratio
   - overlap percentage  
 - Works with all major MPI implementations (Open MPI, MPICH, MVAPICH, Intel MPI)
 - Detects:
   - NIC offload capabilities  
-  - MPI asynchronous progress behavior  
-  - UCX/OFI progress engines  
+  - MPI asynchronous progress behavior
 ---
 
 ## Build nd Install
@@ -47,7 +47,7 @@ If directly cloning the git repository use:
 ```sh
 $ ./autogen.sh
 $ cd bin
-$ mpirun [ Runtime options] ./executable --dim=1 --ratio=50
+$ mpirun -np numberOfRanks ./executable --dim=1/2/3 --ratio=compToCommRatio
 ```
 ## Example output:
 when 
