@@ -38,5 +38,5 @@ __global__ void compute_kernel(float *d_a, size_t n);
 
 void compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us);
 void init_vector(int n);
-
+void free_vector(void);
 #endif
