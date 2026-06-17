@@ -21,9 +21,6 @@ typedef enum{
     TPB_1024=1024
 }threadsPerBlock;
 
-extern cudaDeviceProp deviceProp;
-extern int deviceCount;
-extern int deviceID;
 extern float *d_a;
 extern float*h_a;
 
