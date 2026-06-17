@@ -3,6 +3,9 @@
 
 #include<cuda_runtime.h>
 #include"nmpm.h"
+
+#define VECTOR_DIM 1000000
+
 typedef enum{
     H2D=0,
     D2H=1,
@@ -36,6 +39,6 @@ extern float*h_a;
 
 __global__ void compute_kernel(float *d_a, size_t n);
 
-void gpu_init_arrays(void);
+void gpu_init_arrays(int n);
 
 #endif
