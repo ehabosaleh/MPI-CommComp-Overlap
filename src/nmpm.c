@@ -328,7 +328,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	CHECK_CUDA_ERROR(cudaGetDeviceProperties(&prop,local_rank%device_count));
 	
 	cudaStream_t stream;
-	CHECK_CUDA_ERROR(cudaStreamCreate(&stream);
+	CHECK_CUDA_ERROR(cudaStreamCreate(&stream));
 	int grid=prop.multiProcessorCount*4;
 	int block=threadsPerBlock.TPB_256;
 
@@ -363,19 +363,20 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
     }
 	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
     for (long local_N=MIN_MESSAGE_SIZE;local_N <= MAX_MESSAGE_SIZE; local_N *= 2){
-        char *send_buffers[6];
+        char *send_buffers[6],;
         char *recv_buffers[6];
         	
 		for (int i = 0; i < 6; i++) {
-			CHECK_CUDA_ERROR(cudaMalloc((void**)&send_buffer[i],local_N));
-			CHECK_CUDA_ERROR(cudaMalloc((void**)&recv_buffer[i],local_N));
-        	CHECK_CUDA_ERROR(cudaMemset(send_buffer[i],1,local_N));
-			CHECK_CUDA_ERROR(cudaMemset(recv_buffer[i],0,local_N));
+			CHECK_CUDA_ERROR(cudaMalloc((void**)&send_buffers[i],local_N));
+			CHECK_CUDA_ERROR(cudaMalloc((void**)&recv_buffers[i],local_N));
+        	CHECK_CUDA_ERROR(cudaMemset(send_buffers[i],1,local_N));
+			CHECK_CUDA_ERROR(cudaMemset(recv_buffers[i],0,local_N));
         }
 		for(int iter=0;iter<MAX_ITER;iter++){
 			cudaDeviceSynchronize();
-			MPI_Barrier();
+			MPI_Barrier(MPI_COMM_WORLD);
 			int req_count=0;
+			double init_time=MPI_Wtime();
 			if (dim==3) {
 
 						if(left != MPI_PROC_NULL) {
@@ -516,8 +517,8 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             		}
         	}
 
-        	t_comp_total = (t_comp_total*1e6)/(MAX_ITER-SKIP);
-        	t_ovrl_total= (t_ovrl_total*1e6)/(MAX_ITER-SKIP);
+        	t_comp_total = (t_comp_total)/(MAX_ITER-SKIP);
+        	t_ovrl_total= (1e6*t_ovrl_total)/(MAX_ITER-SKIP);
 		
 			MPI_Allreduce(&t_comp_total, &t_compute_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 			MPI_Allreduce(&t_ovrl_total, &t_ovrl_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
@@ -540,7 +541,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
         		CUDA_CHECK_ERROR(CudaFree(recv_buffers[i]));
         	}
 		}
-
+		CHECK_CUDA_ERROR(cudaStreamDestroy(stream));
     	free(reqs);
 		return 0;
 	}
