@@ -11,7 +11,7 @@ __global__ void compute_kernel(float *d_a, size_t n) {
     }
 }
 
-void gpu_init_arrays(int n) {
+void init_vector(int n) {
     CHECK(cudaMalloc((void**)&d_a,n));            
 }
 
