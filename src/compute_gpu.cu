@@ -10,11 +10,8 @@ __global__ void compute_kernel(float *d_a, size_t n) {
         d_a[i] = d_a[i] * d_a[i];
     }
 }
-void gpu_init_arrays(void) {
-    h_a = (float*)malloc(N * sizeof(float));
-    for (size_t i = 0; i < N; i++) {
-        h_a[i] = static_cast<float>(i);
-    }
-    CHECK_CUDA_ERROR(cudaMalloc(&d_a, N * sizeof(float)));
+
+void gpu_init_arrays(int n) {
+    CHECK(cudaMalloc((void**)&d_a,n));            
 }
 
