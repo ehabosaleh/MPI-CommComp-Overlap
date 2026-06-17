@@ -1,9 +1,20 @@
 #include"nmpm.h"
 #include"compute_cpu.h"
+#include"compute_gpu.cuh"
+
 void usage(char *prog_name) {
-	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--output=FILE] \n", prog_name);
+	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu]\n", prog_name);
 	fprintf(stderr, "  --dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n");
 	fprintf(stderr, "  --ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
+	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n")
+}
+staic int get_local_rank(){
+	MPI_Comm local_comm;
+	int local_rank=0;
+	MPI_Comm_split(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &local_comm);
+	MPI_Comm_rank(local_comm,local_rank);
+	MPI_Comm_free(local_comm);
+	return local_rank;
 }
 static int coordinates(int*dims,int*coords, int rank,int size, int dim){ 
 	if(dim==3){
@@ -98,11 +109,11 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
     	if (rank==0) {
 			if (dim==3) {
-				printf("\nRunning 3D benchmark with grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
+				printf("\nRunning 3D benchmark on CPU with ranks grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
 			} else if(dim==2){
-				printf("\nRunning 2D benchmark with grid %dx%d\n", dims[0], dims[1]);
+				printf("\nRunning 2D benchmark on CPU with ranks grid %dx%d\n", dims[0], dims[1]);
 			} else if(dim==1){
-				printf("\nRunning 1D benchmark with grid %d\n", dims[0]);
+				printf("\nRunning 1D benchmark on CPU with ranks grid %d\n", dims[0]);
 			}
         	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
     	}
@@ -292,6 +303,246 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
     	}
 
     	free(reqs);
-	return 0;
+		return 0;
 }
+
+
+int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio){
+	int iter;
+    double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
+    double overlap=0.0;
+    double  t_pure_global=0.0, t_compute_global=0.0, t_ovrl_global=0.0;
+	double t_comp=0.0,t_ovrl=0.0;
+
+	int dims[3], coords[3];
+	int num_neighbors;
+	int left=MPI_PROC_NULL, right=MPI_PROC_NULL, front=MPI_PROC_NULL, back=MPI_PROC_NULL, bottom=MPI_PROC_NULL, top=MPI_PROC_NULL;
+
+	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+	MPI_Comm_size(MPI_COMM_WORLD,&size);
+	int local_rank=get_local_rank();
+	int device_count=0;
+	CHECK_CUDA_ERROR(cudaGetDeviceCount(&device_count));
+	CHECK_CUDA_ERROR(cudaSetDevice(local_rank%device_count));
+	cudaDeviceProp prop;
+	CHECK_CUDA_ERROR(cudaGetDeviceProperties(&prop,local_rank%device_count));
+	
+	cudaStream_t stream;
+	CHECK_CUDA_ERROR(cudaStreamCreate(&stream);
+	int grid=prop.multiProcessorCount*4;
+	int block=threadsPerBlock.TPB_256;
+
+		
+	if(dim==3){
+		coordinates(dims,coords,rank,size,3);
+		num_neighbors=6;
+		find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,3);
+	}
+	else if(dim==2){
+		coordinates(dims,coords,rank,size,2);
+		num_neighbors=4;
+		find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,2);
+	}
+	else if(dim==1){
+		coordinates(dims,coords,rank,size,1);
+		num_neighbors=2;
+		find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,1);
+	}
+
+	init_vector(VECTOR_DIM);
+
+	if (rank==0) {
+			if (dim==3) {
+				printf("\nRunning 3D benchmark on GPU with ranks grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
+			} else if(dim==2){
+				printf("\nRunning 2D benchmark on GPU with ranks grid %dx%d\n", dims[0], dims[1]);
+			} else if(dim==1){
+				printf("\nRunning 1D benchmark on GPU with ranks grid %d\n", dims[0]);
+			}
+        	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Kernel(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
+    }
+	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
+    for (long local_N=MIN_MESSAGE_SIZE;local_N <= MAX_MESSAGE_SIZE; local_N *= 2){
+        char *send_buffers[6];
+        char *recv_buffers[6];
+        	
+		for (int i = 0; i < 6; i++) {
+			CHECK_CUDA_ERROR(cudaMalloc((void**)&send_buffer[i],local_N));
+			CHECK_CUDA_ERROR(cudaMalloc((void**)&recv_buffer[i],local_N));
+        	CHECK_CUDA_ERROR(cudaMemset(send_buffer[i],1,local_N));
+			CHECK_CUDA_ERROR(cudaMemset(recv_buffer[i],0,local_N));
+        }
+		for(int iter=0;iter<MAX_ITER;iter++){
+			cudaDeviceSynchronize();
+			MPI_Barrier();
+			int req_count=0;
+			if (dim==3) {
+
+						if(left != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(right != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(front != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[2], local_N, MPI_CHAR, front, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[2], local_N, MPI_CHAR, front, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(back != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[3], local_N, MPI_CHAR, back, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[3], local_N, MPI_CHAR, back, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(top != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[4], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[4], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(bottom != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+            		} else if(dim==2){ 
+
+						if(left != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(right != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(top != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[2], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[2], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(bottom != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+            		}
+					else if(dim==1){
+						if(left != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(right != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+					}
+
+            		MPI_Waitall(req_count, reqs, MPI_STATUSES_IGNORE);
+
+            		if(iter>=SKIP) {
+                		t_pure_total += MPI_Wtime()-init_time;
+            		}
+            		
+        	}
+        	t_pure_total = 1e6 * t_pure_total/(MAX_ITER-SKIP);
+			MPI_Allreduce(&t_pure_total, &t_pure_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+			
+			for (iter = 0; iter < MAX_ITER; iter++) {
+					cudaDeviceSynchronize();
+            		int req_count = 0;
+					MPI_Barrier(MPI_COMM_WORLD);
+            		double init_time = MPI_Wtime();
+            		
+            		if (dim==3) {
+
+						if(left != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(right != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(front != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[2], local_N, MPI_CHAR, front, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[2], local_N, MPI_CHAR, front, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(back != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[3], local_N, MPI_CHAR, back, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[3], local_N, MPI_CHAR, back, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(top != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[4], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[4], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(bottom != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+            		} else if(dim==2) {
+
+						if(left != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(right != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(top != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[2], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[2], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+						if(bottom != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+            		} else if(dim==1){
+						if(left != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD	, &reqs[req_count++]);
+						}
+						if(right != MPI_PROC_NULL) {
+							MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+							MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[req_count++]);
+						}
+					}
+
+            		double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
+            		t_comp = compute_on_gpu(d_a,stream, grid,block, N, targetComputeTime)
+
+            		MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
+
+            		t_ovrl=MPI_Wtime()-init_time;
+
+            		if(iter>=SKIP){
+                		t_comp_total += t_comp;
+                		t_ovrl_total += t_ovrl;
+            		}
+        	}
+
+        	t_comp_total = (t_comp_total*1e6)/(MAX_ITER-SKIP);
+        	t_ovrl_total= (t_ovrl_total*1e6)/(MAX_ITER-SKIP);
+		
+			MPI_Allreduce(&t_comp_total, &t_compute_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+			MPI_Allreduce(&t_ovrl_total, &t_ovrl_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+        	if(rank == 0) {
+					double actualRatio=100.0*(t_compute_global/t_pure_global);
+					overlap= 100.0 * fmax(0.0,fmin(1.0,(t_pure_global+t_compute_global-t_ovrl_global)/fmin(t_pure_global, t_compute_global)));
+            		printf("%-20ld%-20.3f%-20.3f%-20.3f%-20d%-20.3f%-20.3f\n",local_N, t_pure_global, t_compute_global,actualRatio,compToPureCommRatio, t_ovrl_global, overlap);
+        	}
+			t_comp_total=0;
+			t_ovrl_total=0;
+			t_pure_total=0;
+			t_pure_global=0;
+			t_compute_global=0;
+			t_ovrl_global=0;
+			overlap=0;
+
+        	for (int i = 0; i < 6; i++) {
+        		CUDA_CHECK_ERROR(CudaFree(send_buffers[i]));
+        		CUDA_CHECK_ERROR(CudaFree(recv_buffers[i]));
+        	}
+		}
+
+    	free(reqs);
+		return 0;
+	}
+
 
