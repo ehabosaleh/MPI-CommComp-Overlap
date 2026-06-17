@@ -42,7 +42,11 @@ void init_vector(int n) {
     CHECK_CUDA_ERROR(cudaMalloc((void**)&d_a,n*sizeof(float))); 
     for(int i=0;i<n;i++)
             h_a[i]=i;
-    CHECK_CUDA_ERROR(cudaMemcpy(d_a,h_a,sizeof(float)*n,cudaMemcppyHostToDevice));
-               
+    CHECK_CUDA_ERROR(cudaMemcpy(d_a,h_a,sizeof(float)*n,cudaMemcppyHostToDevice));              
+}
+void free_vector(void){
+    CHECK_CUDA_ERROR(cudaFree(d_a));
+    CHECK_CUDA_ERROR(cudaFreeHost(h_a));
+
 }
 
