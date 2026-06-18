@@ -11,9 +11,10 @@ __global__ void compute_kernel(float *d_a, size_t n) {
     }
 }
 
-double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us){
+float compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us){
     cudaEvent_t start, stop;
-    double kernel_ms=0.0,elapsed_time_us=0.0,time_ms=0.0;
+    float kernel_ms=0.0,elapsed_time_us=0.0;
+    float time_ms=0.0f;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     while(elapsed_time_us<=latency_us){
@@ -29,12 +30,12 @@ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_
             break;
         }
         cudaEventElapsedTime(&time_ms,start,stop);
-        elapsed_time+=(double)time_ms*1000.0;
+        elapsed_time_us+=time_ms*1000.0;
     }
     CUDA_CHECK_ERROR(cudaEventDestroy(start));
     CUDA_CHECK_ERROR(cudaEventDestroy(stop));
 
-    return elapsed_time;
+    return elapsed_time_us;
 }
 
 void init_vector(int n) {
@@ -42,7 +43,7 @@ void init_vector(int n) {
     CHECK_CUDA_ERROR(cudaMalloc((void**)&d_a,n*sizeof(float))); 
     for(int i=0;i<n;i++)
             h_a[i]=i;
-    CHECK_CUDA_ERROR(cudaMemcpy(d_a,h_a,sizeof(float)*n,cudaMemcppyHostToDevice));              
+    CHECK_CUDA_ERROR(cudaMemcpy(d_a,h_a,sizeof(float)*n,cudaMemcpyHostToDevice));              
 }
 void free_vector(void){
     CHECK_CUDA_ERROR(cudaFree(d_a));
