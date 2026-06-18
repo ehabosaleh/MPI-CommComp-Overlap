@@ -9,14 +9,15 @@
 
 #include"compute_cpu.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if HAVE_CUDA
 #include"compute_gpu.cuh"
 int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio);
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #ifndef MAX_ITER
 #define MAX_ITER 10000

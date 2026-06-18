@@ -49,14 +49,22 @@ int main(int argc, char *argv[]){
     MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-    if(dev==0)
-        run_overlap_benchmark(rank,size,dim,compToPureCommRatio);
-    #if HAVE_CUDA
-    else if(dev==1)
+    if(dev==0){
+         run_overlap_benchmark(rank,size,dim,compToPureCommRatio);
+    }
+
+    else if(dev==1){
+	#if HAVE_CUDA    
         run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio);
 
-    #endif
-    
+	#else
+	fprintf(stderr, "GPU mode requested, but this binary was built without CUDA support.\n");
+    	MPI_Finalize();
+    	return -1;
+
+	#endif
+    }
+
     MPI_Finalize();
     return 0;
 }
