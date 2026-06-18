@@ -277,7 +277,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	cudaStream_t stream;
 	CHECK_CUDA_ERROR(cudaStreamCreate(&stream));
 	int grid=prop.multiProcessorCount*4;
-	int block=threadsPerBlock.TPB_256;
+	int block=TPB_256;
 
 		
 	if(dim==3){
