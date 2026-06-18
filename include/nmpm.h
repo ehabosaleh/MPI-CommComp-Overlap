@@ -7,6 +7,13 @@
 #include<mpi.h>
 #include<string.h>
 
+#include"compute_cpu.h"
+
+#if HAVE_CUDA
+#include"compute_gpu.cuh"
+int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio);
+#endif
+
 #ifndef MAX_ITER
 #define MAX_ITER 10000
 #endif
