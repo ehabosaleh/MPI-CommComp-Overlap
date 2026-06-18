@@ -14,6 +14,10 @@
 int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio);
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef MAX_ITER
 #define MAX_ITER 10000
 #endif
@@ -41,5 +45,9 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 
 void usage(char *prog_name);
 int run_overlap_benchmark(int rank,int size, int dim, int compToPureCommRatio);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
