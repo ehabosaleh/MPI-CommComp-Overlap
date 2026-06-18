@@ -4,6 +4,10 @@
 #include<cuda_runtime.h>
 #include"nmpm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define VECTOR_DIM 1000000
 
 typedef enum{
@@ -39,4 +43,8 @@ __global__ void compute_kernel(float *d_a, size_t n);
 float compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us);
 void init_vector(int n);
 void free_vector(void);
+#ifdef __cplusplus
+}
+#endif
+
 #endif
