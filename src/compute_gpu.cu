@@ -32,8 +32,8 @@ float compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t
         cudaEventElapsedTime(&time_ms,start,stop);
         elapsed_time_us+=time_ms*1000.0;
     }
-    CUDA_CHECK_ERROR(cudaEventDestroy(start));
-    CUDA_CHECK_ERROR(cudaEventDestroy(stop));
+    CHECK_CUDA_ERROR(cudaEventDestroy(start));
+    CHECK_CUDA_ERROR(cudaEventDestroy(stop));
 
     return elapsed_time_us;
 }
