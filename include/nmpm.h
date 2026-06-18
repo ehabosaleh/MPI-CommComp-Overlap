@@ -43,4 +43,3 @@ void usage(char *prog_name);
 int run_overlap_benchmark(int rank,int size, int dim, int compToPureCommRatio);
 
 #endif
-

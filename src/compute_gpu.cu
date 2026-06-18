@@ -49,4 +49,3 @@ void free_vector(void){
     CHECK_CUDA_ERROR(cudaFreeHost(h_a));
 
 }
-

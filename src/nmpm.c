@@ -388,4 +388,3 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 }
 
 #endif
-
