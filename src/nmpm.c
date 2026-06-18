@@ -1,6 +1,4 @@
 #include"nmpm.h"
-#include"compute_cpu.h"
-#include"compute_gpu.cuh"
 
 void usage(char *prog_name) {
 	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu]\n", prog_name);
@@ -254,6 +252,8 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 	return 0;
 }
 
+#if HAVE_CUDA
+
 int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio){
 	int iter;
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
@@ -387,4 +387,5 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	return 0;
 }
 
+#endif
 
