@@ -11,31 +11,72 @@ __global__ void compute_kernel(float *d_a, size_t n) {
     }
 }
 
-float compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us){
-    cudaEvent_t start, stop;
-    float kernel_ms=0.0,elapsed_time_us=0.0;
-    float time_ms=0.0f;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    while(elapsed_time_us<=latency_us){
-
-        cudaEventRecord(start,stream);
-        compute_kernel<<<grid,block,0,stream>>>(d_a,n);
-        cudaEventRecord(stop,stream);
-        cudaEventSynchronize(stop);
-        cudaError_t err=cudaGetLastError();
-
-        if(err!=cudaSuccess){
-            fprintf(stderr,"CUDA kernel error: %s\n", cudaGetErrorString(err));
-            break;
+__global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int inner_iters){
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for (size_t i=tid; i<n; i+=stride){
+        float x=d_a[i];
+        for (int r = 0; r < repeat; r++) {
+            #pragma unroll 1
+            for (int k=0;k<inner_iters;k++) {
+                x=x*1.000001f+0.000001f;
+            }
         }
-        cudaEventElapsedTime(&time_ms,start,stop);
-        elapsed_time_us+=time_ms*1000.0;
-    }
-    CHECK_CUDA_ERROR(cudaEventDestroy(start));
-    CHECK_CUDA_ERROR(cudaEventDestroy(stop));
 
-    return elapsed_time_us;
+        d_a[i]=x;
+    }
+}
+
+double measure_gpu_kernel_us(float*d_a,size_t n, cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters){
+    double time_us=0.0f;
+    cudaEvent_t start,stop;
+    CHECK_CUDA_ERROR(cudaEvenCreate(&start));
+    CHECK_CUDA_ERROR(cudaEventCreate(&stop));
+    CHECK_CUDA_ERROR(cudaEventRecord(start,stream));
+    compute_kernel_calibrate<<<block,grid,0,stream>>>(d_a,n,repeat,inner_iters);
+    CHECK_CUDA_ERROR(cudaPeekAtLastError());
+    CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
+    CHECK_CUDA_ERROR(cudaEventSynchronize());
+    CHECK_CUDA_ERROR(cudaEventElapsedTime(&time_ms,start,stop));
+
+    return (dobule)time_us*1000.0;
+}
+int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us){
+    const int calibration_repeat = 1000;
+    int low=1;
+    int high=100000;
+    int best_inner_iters=1;
+    double best_error=1e30;
+
+    for (int iter=0;iter<30;iter++){
+        int mid=low+(high-low)/2;
+
+        double total_us = measure_gpu_kernel_us(d_a,stream,grid,block,n,calibration_repeat,mid);
+
+        double unit_us=total_us/(double)calibration_repeat;
+        double error=fabs(unit_us-target_unit_us);
+
+        if(error<best_error){
+            best_error=error;
+            best_inner_iters=mid;
+        }
+
+        if(unit_us<target_unit_us) {
+            low=mid+1;
+        }else{
+            high=mid-1;
+        }
+    }
+
+    return best_inner_iters;
+    
+}
+double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters){
+    if(latency_us<0.0){
+        return 0.0;
+    }
+    int repeat = (int)ceil(latency_us/unit_us);
+   return measure_gpu_kernel_us(d_a,stream,grid,block,n,repeat,inner_iters);
 }
 
 void init_vector(int n) {
