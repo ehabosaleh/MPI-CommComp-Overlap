@@ -38,9 +38,13 @@ extern float*h_a;
 }
 
 
-__global__ void compute_kernel(float *d_a, size_t n);
 
-float compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us);
+__global__ void compute_kernel_calibrat(float*d_a, size_t n, int repeat, int inner_iters);
+double measure_gpu_kernel_us(float*d_a,size_t n, cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters)
+int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us);
+
+__global__ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters);
+double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us);
 void init_vector(int n);
 void free_vector(void);
 #ifdef __cplusplus
