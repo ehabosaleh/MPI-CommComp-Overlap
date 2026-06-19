@@ -256,6 +256,9 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
 int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio){
 	int iter;
+	int gpu_inner_iters;
+
+
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
     double overlap=0.0;
     double  t_pure_global=0.0, t_compute_global=0.0, t_ovrl_global=0.0;
@@ -278,7 +281,9 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	CHECK_CUDA_ERROR(cudaStreamCreate(&stream));
 	int grid=prop.multiProcessorCount*4;
 	int block=TPB_256;
+	init_vector(VECTOR_DIM);
 
+	gpu_inner_iter=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM,1);
 		
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
@@ -296,7 +301,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 		find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,1);
 	}
 
-	init_vector(VECTOR_DIM);
+	
 
 	if (rank==0) {
 			if (dim==3) {
@@ -345,7 +350,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
             	
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
-            t_comp = compute_on_gpu(d_a,stream, grid,block, VECTOR_DIM, targetComputeTime);
+            t_comp = compute_on_gpu(d_a,stream, grid,block, VECTOR_DIM, targetComputeTime,1,gpu_inner_iter);
 
             MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
 
