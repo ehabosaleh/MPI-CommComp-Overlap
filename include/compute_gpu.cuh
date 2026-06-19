@@ -45,7 +45,6 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
 
  double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters);
 __global__ double compute_kernel(float *d_a, size_t n);
-double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us);
 void init_vector(int n);
 void free_vector(void);
 #ifdef __cplusplus
