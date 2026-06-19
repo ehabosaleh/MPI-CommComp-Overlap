@@ -281,9 +281,10 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	CHECK_CUDA_ERROR(cudaStreamCreate(&stream));
 	int grid=prop.multiProcessorCount*4;
 	int block=TPB_256;
-	init_vector(VECTOR_DIM);
+	int N=VECTOR_DIM;
+	init_vector(N);
 
-	gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM,1);
+	gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1);
 		
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
