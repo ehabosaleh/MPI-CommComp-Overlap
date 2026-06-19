@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-cmake_policy(SET CMP0104 NEW)
+#cmake_policy(SET CMP0104 NEW)
 
 project(Neighbor-Overlap-Microbenchmark LANGUAGES C)
 
@@ -19,13 +19,28 @@ if(ENABLE_CUDA)
     find_package(CUDAToolkit QUIET)
 
     if(CUDAToolkit_FOUND)
-        set(CMAKE_CUDA_HOST_COMPILER /usr/bin/g++ CACHE FILEPATH "CUDA host compiler")
-	enable_language(CUDA)
-	
-	#set(CMAKE_CUDA_ARCHITECTURES 80)
-
-	set(CMAKE_CUDA_ARCHITECTURES 90)
+        enable_language(CUDA)
         set(HAVE_CUDA 1)
+
+        add_library(cuda_memcpy_trace SHARED src/cuda_memcpy_trace.cpp)
+        target_include_directories(cuda_copy_trace PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
+
+        target_link_libraries(cuda_copy_trace PRIVATE dl)
+
+        set_target_properties(cuda_copy_trace PROPERTIES
+            POSITION_INDEPENDENT_CODE ON
+            LIBRARY_OUTPUT_DIRECTORY ${PROJECT_ROOT}/lib
+            RUNTIME_OUTPUT_DIRECTORY ${PROJECT_ROOT}/lib
+            ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_ROOT}/lib
+        )
+
+        set(CMAKE_CUDA_HOST_COMPILER /usr/bin/g++ CACHE FILEPATH "CUDA host compiler")
+	    
+	
+	    #set(CMAKE_CUDA_ARCHITECTURES 80)
+
+	    #set(CMAKE_CUDA_ARCHITECTURES 90)
+        
 
         message(STATUS "CUDA found: ${CUDAToolkit_VERSION}")
         message(STATUS "CUDA compiler: ${CMAKE_CUDA_COMPILER}")
@@ -79,6 +94,8 @@ if(HAVE_CUDA)
         LINKER_LANGUAGE CUDA
     )
 endif()
+
+
 
 #install(TARGETS nmpm    ARCHIVE DESTINATION lib)
 
