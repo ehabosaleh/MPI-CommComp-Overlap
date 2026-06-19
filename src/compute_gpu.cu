@@ -14,7 +14,7 @@ __global__ void compute_kernel(float *d_a, size_t n) {
 __global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int inner_iters){
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
-    for (size_t i=tid; i<n; i+=stride){
+    for (size_t i=idx; i<n; i+=stride){
         float x=d_a[i];
         for (int r = 0; r < repeat; r++) {
             #pragma unroll 1
