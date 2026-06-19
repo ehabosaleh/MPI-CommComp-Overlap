@@ -23,11 +23,11 @@ if(ENABLE_CUDA)
         set(HAVE_CUDA 1)
 
         add_library(cuda_memcpy_trace SHARED src/cuda_memcpy_trace.cpp)
-        target_include_directories(cuda_copy_trace PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
+        target_include_directories(cuda_memcpy_trace PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
 
-        target_link_libraries(cuda_copy_trace PRIVATE dl)
+        target_link_libraries(cuda_memcpy_trace PRIVATE dl)
 
-        set_target_properties(cuda_copy_trace PROPERTIES
+        set_target_properties(cuda_memcpy_trace PROPERTIES
             POSITION_INDEPENDENT_CODE ON
             LIBRARY_OUTPUT_DIRECTORY ${PROJECT_ROOT}/lib
             RUNTIME_OUTPUT_DIRECTORY ${PROJECT_ROOT}/lib
