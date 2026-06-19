@@ -44,9 +44,9 @@ double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,
     return (double)time_ms*1000.0;
 }
 int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us){
-    const int calibration_repeat = 1000;
+    const int calibration_repeat = 100;
     int low=1;
-    int high=100000;
+    int high=10000;
     int best_inner_iters=1;
     double best_error=1e30;
 
