@@ -28,18 +28,20 @@ __global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int in
 }
 
 double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters){
-    double time_us=0.0f;
+    double time_ms=0.0f;
     cudaEvent_t start,stop;
-    CHECK_CUDA_ERROR(cudaEvenCreate(&start));
+    CHECK_CUDA_ERROR(cudaEventCreate(&start));
     CHECK_CUDA_ERROR(cudaEventCreate(&stop));
     CHECK_CUDA_ERROR(cudaEventRecord(start,stream));
     compute_kernel_calibrate<<<block,grid,0,stream>>>(d_a,n,repeat,inner_iters);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
-    CHECK_CUDA_ERROR(cudaEventSynchronize());
+    CHECK_CUDA_ERROR(cudaEventSynchronize(stop));
     CHECK_CUDA_ERROR(cudaEventElapsedTime(&time_ms,start,stop));
-
-    return (dobule)time_us*1000.0;
+    
+    CHECK_CUDA_ERROR(cudaEventDestroy(start));
+    CHECK_CUDA_ERROR(cudaEventDestroy(stop));
+    return (double)time_ms*1000.0;
 }
 int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us){
     const int calibration_repeat = 1000;
