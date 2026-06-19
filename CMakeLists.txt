@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
+cmake_policy(SET CMP0104 NEW)
 
 project(Neighbor-Overlap-Microbenchmark LANGUAGES C)
 
@@ -8,6 +9,9 @@ find_package(MPI REQUIRED)
 find_package(Threads REQUIRED)
 
 set(HAVE_CUDA 0)
+set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_ROOT}/bin)
 
 set(NMPM_SOURCES src/nmpm.c src/compute_cpu.c)
 
@@ -15,8 +19,12 @@ if(ENABLE_CUDA)
     find_package(CUDAToolkit QUIET)
 
     if(CUDAToolkit_FOUND)
-        enable_language(CUDA)
+        set(CMAKE_CUDA_HOST_COMPILER /usr/bin/g++ CACHE FILEPATH "CUDA host compiler")
+	enable_language(CUDA)
+	
+	#set(CMAKE_CUDA_ARCHITECTURES 80)
 
+	set(CMAKE_CUDA_ARCHITECTURES 90)
         set(HAVE_CUDA 1)
 
         message(STATUS "CUDA found: ${CUDAToolkit_VERSION}")
@@ -66,11 +74,12 @@ endif()
 add_executable(test src/main/main.c )
 
 target_link_libraries(test PRIVATE nmpm )
+if(HAVE_CUDA)
+    set_target_properties(test PROPERTIES
+        LINKER_LANGUAGE CUDA
+    )
+endif()
 
-install(TARGETS nmpm
-    ARCHIVE DESTINATION lib
-)
+#install(TARGETS nmpm    ARCHIVE DESTINATION lib)
 
-install(TARGETS test
-    RUNTIME DESTINATION bin
-)
+#install(TARGETS test    RUNTIME DESTINATION bin)
