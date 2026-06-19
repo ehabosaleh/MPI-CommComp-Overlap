@@ -33,7 +33,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 #endif
 
 #ifndef MIN_MESSAGE_SIZE
-#define MIN_MESSAGE_SIZE (1 << 0)
+#define MIN_MESSAGE_SIZE (1 << 10)
 #endif
 
 #ifndef DIM
