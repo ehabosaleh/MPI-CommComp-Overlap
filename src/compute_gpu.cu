@@ -28,7 +28,7 @@ __global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int in
 }
 
 double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters){
-    double time_ms=0.0f;
+    float time_ms=0.0f;
     cudaEvent_t start,stop;
     CHECK_CUDA_ERROR(cudaEventCreate(&start));
     CHECK_CUDA_ERROR(cudaEventCreate(&stop));
