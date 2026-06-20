@@ -1,4 +1,4 @@
-# Non-blocking Multi-player Ping-pong Microbenchmark (NMPM) (V2.0.0)
+# Non-blocking Multi-player Ping-pong Microbenchmark (NMPM) (V2.1.0 — Added GPU communication/computation overlap support)
 
 NMPM quantifies how much communication can be hidden behind computation when using nonblocking MPI operations (`MPI_Isend`, `MPI_Irecv`, `MPI_Waitall`) in a 1D, 2D and 3D neighbor-exchange pattern.
 
@@ -26,6 +26,7 @@ Interpretation:
 ---
 
 ## Features
+- Addes GPU communication/computation overlap measurement
 - 1D neighbor exchange: left, right
 - 2D neighbor exchange: left, right, top, bottom
 - 3D neighbor exchange: left, right, top, bottom, front, back
@@ -38,8 +39,11 @@ Interpretation:
   - overlap percentage  
 - Works with all major MPI implementations (Open MPI, MPICH, MVAPICH, Intel MPI)
 - Detects:
+  - whether GPU buffers are transferred directly through GPU-aware MPI
+  - RDMA/P2P GPUDirect or NVLink-based data movement without staging through host memory
   - NIC offload capabilities  
   - MPI asynchronous progress behavior
+
 ---
 
 ## Build nd Install
