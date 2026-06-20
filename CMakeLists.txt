@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 #cmake_policy(SET CMP0104 NEW)
 
-project(Neighbor-Overlap-Microbenchmark LANGUAGES C)
+project(Neighbor-Overlap-Microbenchmark LANGUAGES C CXX)
 
 option(ENABLE_CUDA "Enable CUDA support" ON)
 
