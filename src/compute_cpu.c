@@ -28,7 +28,6 @@ void init_arrays(void){
 void compute_on_host(double latency, int size_threshold){
 	int i,j;
 
-	double sum=0;
 	double ccompute_start=MPI_Wtime();
 	double ccompute_end=ccompute_start;
 	if(size_threshold>=SIZE_THRESHOLD)
