@@ -1,10 +1,11 @@
 #include"nmpm.h"
 
 void usage(char *prog_name) {
-	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu]\n", prog_name);
-	fprintf(stderr, "  --dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n");
-	fprintf(stderr, "  --ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
+	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu/cpu] [--mode=compute_bound/memory_bound]\n", prog_name);
+	fprintf(stderr, "--dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n");
+	fprintf(stderr, "--ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
 	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n");
+	fprintf(stderr,"--mode: 0 for memory-bound and 1 for compute-bound \n");
 }
 static int get_local_rank(){
 	MPI_Comm local_comm;
@@ -254,7 +255,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
 #if HAVE_CUDA
 
-int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio){
+int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio,int compute){
 	int iter;
 	int gpu_inner_iters;
 
@@ -284,7 +285,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	int N=VECTOR_DIM;
 	init_vector(N);
 
-	gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1);
+	gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1,compute);
 		
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
@@ -351,7 +352,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
             	
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
-            t_comp = compute_on_gpu(d_a,stream, grid,block, VECTOR_DIM, targetComputeTime,1,gpu_inner_iters,req_count,reqs);
+            t_comp = compute_on_gpu(d_a,stream, grid,block, VECTOR_DIM, targetComputeTime,1,gpu_inner_iters,req_count,reqs,compute);
 
             MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
 

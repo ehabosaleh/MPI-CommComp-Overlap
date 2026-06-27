@@ -4,7 +4,7 @@ int main(int argc, char *argv[]){
     int dim = DIM;
     int dev=0;
     int compToPureCommRatio=COMP_TO_COMM_RATIO;
-    
+    int compute=1;
    
 
     for(int i=0;i<argc;i++){
@@ -32,6 +32,13 @@ int main(int argc, char *argv[]){
                 return -1;
             }
         }
+        else if(strcmp(argv[i],"--mode")==0){
+                compute=atoi(argv[i]+6);
+                if(compute<0){
+                    fprintf(stderr,"Invalid mode specified. Use a non-negative integer.\n");
+                    return -1;
+                }
+        }
         else if(strcmp(argv[i],"--help")==0){
             usage(argv[0]);
             return 0;
@@ -55,7 +62,7 @@ int main(int argc, char *argv[]){
 
     else if(dev==1){
 	#if HAVE_CUDA    
-        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio);
+        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio,compute);
 
 	#else
 	fprintf(stderr, "GPU mode requested, but this binary was built without CUDA support.\n");
