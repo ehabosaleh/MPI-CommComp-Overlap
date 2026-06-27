@@ -94,12 +94,12 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     return best_inner_iters;
     
 }
-double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters,int req_count, MPI_Request *reqs){
+double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters,int req_count, MPI_Request *reqs, int compute){
     if(latency_us<0.0){
         return 0.0;
     }
     int repeat = (int)ceil(latency_us/unit_us);
-   return measure_gpu_kernel_us(d_a,stream,grid,block,n,repeat,inner_iters, req_count,reqs);
+   return measure_gpu_kernel_us(d_a,stream,grid,block,n,repeat,inner_iters, req_count,reqs,compute);
 }
 
 void init_vector(int n) {
