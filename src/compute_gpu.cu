@@ -12,19 +12,32 @@ __global__ void compute_kernel(float *d_a, size_t n) {
     }
 }
 
-__global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int inner_iters){
+__global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int inner_iters, int compute_bound){
+
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
     for (size_t i=idx; i<n; i+=stride){
-        float x=d_a[i];
-        for (int r = 0; r < repeat; r++) {
-            #pragma unroll 1
-            for (int k=0;k<inner_iters;k++) {
-                x=x*1.000001f+0.000001f;
+        if (compute){
+            float x=d_a[i];
+            for(int r=0;r<repeat;r++){
+                #pragma unroll 1
+                for(int k = 0; k < inner_iters; k++) {
+                    x = x * 1.000001f + 0.000001f;
+                }
+            }
+
+            d_a[i]=x;
+        }
+        else {
+            for(int r = 0; r < repeat; r++) {
+                #pragma unroll 1
+                for (int k=0;k<inner_iters;k++) {
+                    size_t j = (i +(size_t)k*stride) % n;
+                    float x = d_a[j];
+                    d_a[j] = x + 1.0e-20f;
+                }
             }
         }
-
-        d_a[i]=x;
     }
 }
 
