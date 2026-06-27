@@ -32,8 +32,8 @@ int main(int argc, char *argv[]){
                 return -1;
             }
         }
-        else if(strcmp(argv[i],"--mode")==0){
-                compute=atoi(argv[i]+6);
+        else if(strncmp(argv[i],"--mode=",7)==0){
+                compute=atoi(argv[i]+7);
                 if(compute<0){
                     fprintf(stderr,"Invalid mode specified. Use a non-negative integer.\n");
                     return -1;
