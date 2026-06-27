@@ -12,7 +12,7 @@ __global__ void compute_kernel(float *d_a, size_t n) {
     }
 }
 
-__global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int inner_iters, int compute_bound){
+__global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int inner_iters, int compute){
 
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
