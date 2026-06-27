@@ -39,7 +39,7 @@ extern float*h_a;
 
 
 
-__global__ void compute_kernel_calibrat(float*d_a, size_t n, int repeat, int inner_iters);
+__global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int inner_iters, int compute);
 double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters,int req_count, MPI_Request *reqs);
 int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us);
 
