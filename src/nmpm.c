@@ -284,8 +284,10 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	int block=TPB_256;
 	int N=VECTOR_DIM;
 	init_vector(N);
-
-	gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1,compute);
+	if(compute)
+		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1,compute);
+	else
+		gpu_inner_iters=0;
 		
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
