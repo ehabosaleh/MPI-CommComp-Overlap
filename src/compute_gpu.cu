@@ -16,8 +16,9 @@ __global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int in
 
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
-    for (size_t i=idx; i<n; i+=stride){
-        if (compute){
+    if (compute){
+        for (size_t i=idx; i<n; i+=stride){
+        
             float x=d_a[i];
             for(int r=0;r<repeat;r++){
                 #pragma unroll 1
@@ -28,18 +29,17 @@ __global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int in
 
             d_a[i]=x;
         }
-        else {
-            for(int r = 0; r < repeat; r++) {
-                #pragma unroll 1
-                for (int k=0;k<inner_iters;k++) {
-                    size_t j = (i +(size_t)k*stride) % n;
-                    float x = d_a[j];
-                    d_a[j] = x + 1.0e-20f;
+    }
+    else {
+            for (int r = 0; r < repeat; r++) {
+                for (size_t i = idx; i < n; i += stride) {
+                    float x = d_a[i];
+                    d_a[i] = x + 1.0e-20f;
                 }
             }
-        }
     }
 }
+
 
 double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters, int req_count, MPI_Request *reqs, int compute){
     float time_ms=0.0f;
@@ -47,7 +47,7 @@ double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,
     CHECK_CUDA_ERROR(cudaEventCreate(&start));
     CHECK_CUDA_ERROR(cudaEventCreate(&stop));
     CHECK_CUDA_ERROR(cudaEventRecord(start,stream));
-    compute_kernel_calibrate<<<block,grid,0,stream>>>(d_a,n,repeat,inner_iters,compute);
+    compute_kernel_calibrate<<<grid,block,0,stream>>>(d_a,n,repeat,inner_iters,compute);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
     if(req_count>0){
