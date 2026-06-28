@@ -1,10 +1,13 @@
 #include"nmpm.h"
 
 void usage(char *prog_name) {
-	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu/cpu]\n", prog_name);
+	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu/cpu] [--with-progress=y/n] [--min-bytes=N] [--max-bytes=N]\n", prog_name);
 	fprintf(stderr, "--dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n");
 	fprintf(stderr, "--ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
 	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n");
+	printf(stderr,"--with-progress: 1 to apply MPI_Testall to pending communication requests or 0 to rely on internal MPI progress\n");
+	printf(stderr,"--min-bytes: Desired minimum number of bytes\n");
+	printf(stderr,"--min-bytes: Desired maximum number of bytes\n");
 }
 static int get_local_rank(){
 	MPI_Comm local_comm;
