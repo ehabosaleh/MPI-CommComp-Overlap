@@ -30,7 +30,7 @@ __global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int in
 }
 
 
-double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters, int req_count, MPI_Request *reqs){
+double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters, int req_count, MPI_Request *reqs, int do_progress){
     float time_ms=0.0f;
     cudaEvent_t start,stop;
     CHECK_CUDA_ERROR(cudaEventCreate(&start));
@@ -39,13 +39,14 @@ double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,
     compute_kernel_calibrate<<<grid,block,0,stream>>>(d_a,n,repeat,inner_iters);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
-    if(req_count>0){
-            int mpi_done=0;
-            while(!mpi_done){
-                MPI_Testall(req_count,reqs,&mpi_done,MPI_STATUSES_IGNORE);
-            }
+    if(do_progress)
+        if(req_count>0){
+                int mpi_done=0;
+                while(!mpi_done){
+                    MPI_Testall(req_count,reqs,&mpi_done,MPI_STATUSES_IGNORE);
+                }
 
-    }
+        }
     CHECK_CUDA_ERROR(cudaEventSynchronize(stop));
     CHECK_CUDA_ERROR(cudaEventElapsedTime(&time_ms,start,stop));
     
@@ -63,7 +64,7 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     for (int iter=0;iter<30;iter++){
         int mid=low+(high-low)/2;
 
-        double total_us = measure_gpu_kernel_us(d_a,stream,grid,block,n,calibration_repeat,mid,0,NULL);
+        double total_us = measure_gpu_kernel_us(d_a,stream,grid,block,n,calibration_repeat,mid,0,NULL,0);
 
         double unit_us=total_us/(double)calibration_repeat;
         double error=fabs(unit_us-target_unit_us);
@@ -83,12 +84,12 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     return best_inner_iters;
     
 }
-double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters,int req_count, MPI_Request *reqs){
+double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters,int req_count, MPI_Request *reqs , int do_progress){
     if(latency_us<0.0){
         return 0.0;
     }
     int repeat = (int)ceil(latency_us/unit_us);
-   return measure_gpu_kernel_us(d_a,stream,grid,block,n,repeat,inner_iters, req_count,reqs);
+   return measure_gpu_kernel_us(d_a,stream,grid,block,n,repeat,inner_iters, req_count,reqs,do_progress);
 }
 
 void init_vector(int n) {
