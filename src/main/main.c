@@ -5,7 +5,8 @@ int main(int argc, char *argv[]){
     int dev=0;
     int compToPureCommRatio=COMP_TO_COMM_RATIO;
     int compute=1;
-   
+    int min_bytes=MIN_MESSAGE_SIZE;
+    int max_bytes=MAX_MESSAGE_SIZE;
 
     for(int i=0;i<argc;i++){
         if(strncmp(argv[i],"--dim=",6)==0 ){
@@ -21,8 +22,30 @@ int main(int argc, char *argv[]){
                 fprintf(stderr, "Invalid device specified. Use 0 for CPU or 1 for GPU.\n");
                 return -1;
             }
-
         }
+        else if(strncasecmp(argv[i],"--max-bytes=",12)==0){
+            max_bytes=atoi(argv[i]+12);
+            if(max_bytes<=0){
+                fprintf(stderr, "--max-bytes: Invalid message size.\n");
+                return -1;
+            }
+        }
+
+        else if(strncasecmp(argv[i],"--min-bytes=",12)==0){
+            min_bytes=atoi(argv[i]+12);
+            if(min_bytes<=0){
+                fprintf(stderr, "--min-bytes: Invalid message size.\n");
+                return -1;
+            }
+        }
+        else if(strncasecmp(argv[i],"--dev=",6)==0){
+            dev=atoi(argv[i]+6);
+            if(dev!=0&&dev!=1){
+                fprintf(stderr, "Invalid device specified. Use 0 for CPU or 1 for GPU.\n");
+                return -1;
+            }
+        }
+
         else if(strncmp(argv[i],"--ratio=",8)==0){
             compToPureCommRatio=atoi(argv[i]+8);
             if(compToPureCommRatio<0){
@@ -37,6 +60,10 @@ int main(int argc, char *argv[]){
             return 0;
         }
     }
+    if(min_bytes>max_bytes){
+        printf(stderr,"Maximum message size must be larger than minimum message size\n ");
+        return -1;
+    }
     if(dev==1){
         #ifndef HAVE_CUDA
             fprintf(stderr,"CUDA is not installed \n");
@@ -50,12 +77,12 @@ int main(int argc, char *argv[]){
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
     if(dev==0){
-         run_overlap_benchmark(rank,size,dim,compToPureCommRatio);
+         run_overlap_benchmark(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes);
     }
 
     else if(dev==1){
 	#if HAVE_CUDA    
-        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio);
+        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes);
 
 	#else
 	fprintf(stderr, "GPU mode requested, but this binary was built without CUDA support.\n");
