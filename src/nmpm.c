@@ -1,11 +1,10 @@
 #include"nmpm.h"
 
 void usage(char *prog_name) {
-	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu/cpu] [--mode=compute_bound/memory_bound]\n", prog_name);
+	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu/cpu]\n", prog_name);
 	fprintf(stderr, "--dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n");
 	fprintf(stderr, "--ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
 	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n");
-	fprintf(stderr,"--mode: 0 for memory-bound and 1 for compute-bound \n");
 }
 static int get_local_rank(){
 	MPI_Comm local_comm;
