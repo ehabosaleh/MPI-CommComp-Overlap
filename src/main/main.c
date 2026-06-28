@@ -6,12 +6,20 @@ int main(int argc, char *argv[]){
     int compToPureCommRatio=COMP_TO_COMM_RATIO;
     long min_bytes=MIN_MESSAGE_SIZE;
     long max_bytes=MAX_MESSAGE_SIZE;
+    int do_progress=0;
 
     for(int i=0;i<argc;i++){
         if(strncmp(argv[i],"--dim=",6)==0 ){
             dim=atoi(argv[i]+6);
             if(dim!=2 && dim!=3&& dim!=1){
                 fprintf(stderr, "Invalid dimension specified. Use 1 for 1D grid, 2 for 2D grid or 3 for 3D grid.\n");
+                return -1;
+            }
+        }
+        if(strncmp(argv[i],"--with-progress=",16)==0 ){
+            do_progress=atoi(argv[i]+16);
+            if(do_progress<0){
+                fprintf(stderr, "Invalid input: 1 for enable progress; 0 for default\n");
                 return -1;
             }
         }
@@ -60,7 +68,7 @@ int main(int argc, char *argv[]){
         }
     }
     if(min_bytes>max_bytes){
-        printf(stderr,"Maximum message size must be larger than minimum message size\n ");
+        fprintf(stderr,"Maximum message size must be larger than minimum message size\n ");
         return -1;
     }
     if(dev==1){
@@ -81,7 +89,7 @@ int main(int argc, char *argv[]){
 
     else if(dev==1){
 	#if HAVE_CUDA    
-        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes);
+        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,do_progress);
 
 	#else
 	fprintf(stderr, "GPU mode requested, but this binary was built without CUDA support.\n");
