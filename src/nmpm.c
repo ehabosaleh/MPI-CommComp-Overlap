@@ -254,7 +254,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
 #if HAVE_CUDA
 
-int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio,int compute){
+int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio){
 	int iter;
 	int gpu_inner_iters;
 
