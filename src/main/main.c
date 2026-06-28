@@ -4,9 +4,8 @@ int main(int argc, char *argv[]){
     int dim = DIM;
     int dev=0;
     int compToPureCommRatio=COMP_TO_COMM_RATIO;
-    int compute=1;
-    int min_bytes=MIN_MESSAGE_SIZE;
-    int max_bytes=MAX_MESSAGE_SIZE;
+    long min_bytes=MIN_MESSAGE_SIZE;
+    long max_bytes=MAX_MESSAGE_SIZE;
 
     for(int i=0;i<argc;i++){
         if(strncmp(argv[i],"--dim=",6)==0 ){

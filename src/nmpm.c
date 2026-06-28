@@ -134,7 +134,7 @@ static void post_sendrecv(int left,int right, int front, int back, int bottom, i
 
 }
 
-int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
+int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, long min_bytes,long max_bytes){
 	int iter;
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
     double overlap=0.0;
@@ -178,7 +178,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
     }
 
     MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
-    for (long local_N=MIN_MESSAGE_SIZE;local_N <= MAX_MESSAGE_SIZE; local_N *= 2) {
+    for (long local_N=min_bytes;local_N <= max_bytes; local_N *= 2) {
 
         char *send_buffers[6];
         char *recv_buffers[6];
@@ -257,7 +257,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio){
 
 #if HAVE_CUDA
 
-int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio){
+int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes){
 	int iter;
 	int gpu_inner_iters;
 
@@ -317,7 +317,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
         	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Kernel(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
     }
 	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
-    for (long local_N=MIN_MESSAGE_SIZE;local_N <= MAX_MESSAGE_SIZE; local_N *= 2){
+    for (long local_N=min_bytes;local_N <= max_bytes; local_N *= 2){
         char *send_buffers[6];
         char *recv_buffers[6];
         	
