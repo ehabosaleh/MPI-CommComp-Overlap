@@ -7,8 +7,10 @@ void usage(char *prog_name) {
 	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n");
 	fprintf(stderr,"--with-progress: 1 to apply MPI_Testall to pending communication requests or 0 to rely on internal MPI progress\n");
 	fprintf(stderr,"--min-bytes: Desired minimum number of bytes\n");
-	fprintf(stderr,"--min-bytes: Desired maximum number of bytes\n");
+	fprintf(stderr,"--max-bytes: Desired maximum number of bytes\n");
+	fprintf(stderr,"mpirun --hostfile hostfile -np <num_processes> ./test --dim=2 --ratio=50 --dev=1 --with-progress=1 --min-bytes=1024 --max-bytes=1048576\n");
 }
+
 static int get_local_rank(){
 	MPI_Comm local_comm;
 	int local_rank=0;
