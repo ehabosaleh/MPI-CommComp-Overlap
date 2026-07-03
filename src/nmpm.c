@@ -288,12 +288,23 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	CHECK_CUDA_ERROR(cudaStreamCreate(&stream));
 	int grid=prop.multiProcessorCount*4;
 	int block=TPB_256;
-	int N=VECTOR_DIM;
+	size_t N=(size_t)VECTOR_DIM;
 	init_vector(N);
+
+
 	if(compute_bound==1){
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1);
 	}
 	else{
+		if (rank == 0) {
+    		printf("VECTOR_DIM = %zu elements\n", (size_t)VECTOR_DIM);
+    		printf("N          = %zu elements\n", N);
+    		printf("max_elems  = %zu elements\n", max_elems);
+    		printf("per vector = %.3f MB\n",(double)(max_elems * sizeof(float)) / (1024.0 * 1024.0));
+    		printf("3 vectors  = %.3f MB\n",(double)(3.0 * max_elems * sizeof(float)) / (1024.0 * 1024.0));
+    		fflush(stdout);
+		}
+
 		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,max_elems,50);
 	}	
 	if(dim==3){
