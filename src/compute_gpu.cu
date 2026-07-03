@@ -185,19 +185,14 @@ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_
     if(compute_bound){
         int repeat = (int)ceil(latency_us/unit_us);
         return measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,repeat,inner_iters, req_count,reqs,do_progress);
-    }else{  
-
-        
+    }else{ 
         int passes = (int)ceil(latency_us/cal.measured_unit_us);
-        size_t required_elems = cal.elems_per_pass*(size_t)passes;
 
-        if(required_elems>max_elems){
-            passes = (int)ceil((double)max_elems/(double)cal.elems_per_pass);
-        }
         if(passes<1){
             passes=1;
         }
-        return measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,cal.elems_per_pass,passes, max_elems,1.0f,req_count,reqs,do_progress);
+
+        return measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,cal.elems_per_pass,passes,max_elems,1.0f,req_count,reqs,do_progress);
     }
 
 }
