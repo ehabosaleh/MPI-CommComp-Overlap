@@ -145,14 +145,19 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
         }
     }
 
+    double measured_pass_us=best_time_us/(double)best_passes;
+
+    double bytes=(double)elems_per_pass * 3.0 * sizeof(float) * (double)best_passes;
+    double bytes_per_us=bytes/best_time_us;
+
     gpu_memory_calibration_t cal;
     cal.elems_per_pass=elems_per_pass;
-    cal.measured_unit_us=best_time_us;
-    cal.bytes_per_us=((double)elems_per_pass * 3.0 * sizeof(float) * (double)best_passes) / best_time_us;
-    cal.gb_per_s=cal.bytes_per_us * 1e6 / 1e9;
+    cal.measured_unit_us=measured_pass_us;
+    cal.bytes_per_us=bytes_per_us;
+    cal.gb_per_s=bytes_per_us * 1e6 / 1e9;
 
-    printf("Calibrated memory-bound kernel: %zu elements, %d passes, %.6f us, %.3f bytes/us, %.3f GB/s\n",
-           cal.elems_per_pass,best_passes,cal.measured_unit_us,cal.bytes_per_us,cal.gb_per_s);
+    printf("Calibrated memory-bound kernel: %zu elements, %d passes, %.6f us total, %.6f us/pass, %.3f bytes/us, %.3f GB/s\n",
+           cal.elems_per_pass,best_passes,best_time_us,cal.measured_unit_us,cal.bytes_per_us,cal.gb_per_s);
 
     return cal;
 }
