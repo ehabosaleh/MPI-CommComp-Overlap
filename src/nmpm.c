@@ -8,7 +8,8 @@ void usage(char *prog_name) {
 	fprintf(stderr,"--with-progress: 1 to apply MPI_Testall to pending communication requests or 0 to rely on internal MPI progress\n");
 	fprintf(stderr,"--min-bytes: Desired minimum number of bytes\n");
 	fprintf(stderr,"--max-bytes: Desired maximum number of bytes\n");
-	fprintf(stderr,"mpirun --hostfile hostfile -np <num_processes> ./test --dim=2 --ratio=50 --dev=1 --with-progress=1 --min-bytes=1024 --max-bytes=1048576\n");
+	fprintf(stderr,"--compute-bound: Flag to indicate compute-bound benchmark\n");
+	fprintf(stderr,"Example: mpirun --hostfile hostfile -np <num_processes> ./test --dim=2 --ratio=50 --dev=1 --with-progress=1 --min-bytes=1024 --max-bytes=1048576 --compute-bound=1\n");
 }
 
 static int get_local_rank(){
@@ -259,10 +260,11 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 
 #if HAVE_CUDA
 
-int  run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress){
+int  run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress,int compute_bound){
 	int iter;
 	int gpu_inner_iters;
-
+	size_t max_elems=VECTOR_DIM;
+	gpu_memory_calibration_t mem_cal={0,0,0,0,0};
 
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
     double overlap=0.0;
@@ -288,8 +290,12 @@ int  run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRa
 	int block=TPB_256;
 	int N=VECTOR_DIM;
 	init_vector(N);
-	gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1);
-	
+	if(compute_bound==1){
+		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1);
+	}
+	else{
+		mem_cal=calibrate_gpu_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,N,1);
+	}	
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
 		num_neighbors=6;
@@ -355,7 +361,7 @@ int  run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRa
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
             	
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
-            t_comp = compute_on_gpu(d_a,stream, grid,block, VECTOR_DIM, targetComputeTime,1,gpu_inner_iters,req_count,reqs,do_progress);
+            t_comp = compute_on_gpu(d_a,stream,grid,block,local_N,targetComputeTime,1.0,gpu_inner_iters,max_elems,mem_cal,req_count,reqs,do_progress,compute_bound);
 
             MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
 
