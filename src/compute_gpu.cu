@@ -162,17 +162,18 @@ double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid,
     CHECK_CUDA_ERROR(cudaEventDestroy(stop));
     return (double)time_ms*1000.0;
 }
-int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us){
+int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us, double* measured_unit_us){
     const int calibration_repeat = 100;
     int low=1;
     int high=10000;
     int best_inner_iters=1;
     double best_error=1e30;
-    /*
+    double best_unit_us=0.0;
+
     for(int i=0;i<5;i++){
         measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,calibration_repeat,100,0,NULL,0);
     }
-*/
+
     for (int iter=0;iter<30;iter++){
         int mid=low+(high-low)/2;
 
@@ -184,6 +185,7 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
         if(error<best_error){
             best_error=error;
             best_inner_iters=mid;
+            best_unit_us=unit_us;
         }
 
         if(unit_us<target_unit_us) {
@@ -192,8 +194,13 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
             high=mid-1;
         }
     }
+    if(best_unit_us<=0.0){
+        fprintf(stderr,"Invalid compute-bound calibration time\n");
+        MPI_Abort(MPI_COMM_WORLD,1);
+    }
+    
     printf("Calibrated inner iterations: %d (measured unit time: %.3f us, target: %.3f us)\n", best_inner_iters, best_error + target_unit_us, target_unit_us);
-
+    *measured_unit_us = best_unit_us;
     return best_inner_iters;
     
 }
