@@ -268,7 +268,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	size_t elems_per_pass = ELEMS_PER_PASS;
 	size_t max_elems = VECTOR_DIM_MEM;
 	size_t N = max_elems;
-	double *measured_unit_us=malloc(sizeof(double));
+	double measured_unit_us=0.0;
 
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
     double overlap=0.0;
@@ -297,7 +297,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 
 
 	if(compute_bound==1){
-		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,1,measured_unit_us);
+		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,1,&measured_unit_us);
 	}
 	else{
 
