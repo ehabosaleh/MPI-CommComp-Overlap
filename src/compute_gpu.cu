@@ -29,6 +29,14 @@ __global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__rest
 }
 
 double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const float *d_b,cudaStream_t stream, int grid, int block,size_t elems_per_pass,int passes,size_t max_elems,float alpha,int req_count, MPI_Request *reqs,int do_progress){
+    if(elems_per_pass==0 || passes<=0){
+        return 0.0;
+    }
+    size_t required_elems=(size_t)passes*elems_per_pass;
+    if(required_elems>max_elems){
+        fprintf(stderr,"Error: required elements (%zu) exceed max_elems (%zu)\n",required_elems,max_elems);
+        MPI_Abort(MPI_COMM_WORLD,1);
+    }
     float time_ms=0.0f;
     cudaEvent_t start,stop;
     CHECK_CUDA_ERROR(cudaEventCreate(&start));
@@ -108,11 +116,15 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
 }
 */
 
-gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *d_a,const float *d_b, cudaStream_t stream, int grid, int block, size_t max_elems, double target_unit_us){
-    size_t elems_per_pass=max_elems;
+gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *d_a,const float *d_b, cudaStream_t stream, int grid, int block, size_t elems_per_pass, size_t max_elems, double target_unit_us){
+    size_t best_elems=max_elems;
 
     int low=1;
-    int high=10000;
+    int high=(int)(max_elems / elems_per_pass);
+    if(high<1){
+        fprintf(stderr,"Error: max_elems (%zu) is less than elems_per_pass (%zu)\n",max_elems,elems_per_pass);
+        MPI_Abort(MPI_COMM_WORLD,1);
+    }
     int best_passes=1;
 
     double best_error=1e30;
@@ -146,7 +158,7 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
             high=mid-1;
         }
     }
-
+   
     double measured_pass_us=best_time_us/(double)best_passes;
 
     double bytes=(double)elems_per_pass * 3.0 * sizeof(float) * (double)best_passes;
