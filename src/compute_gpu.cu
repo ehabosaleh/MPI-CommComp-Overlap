@@ -65,7 +65,7 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     for (int iter = 0; iter < 30; iter++){
         size_t mid =low+(high-low)/2;
 
-        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,mid,1,0,NULL,0);
+        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,mid,1,1.0f,0,NULL,0);
 
         double error=fabs(time_us-target_unit_us);
 
