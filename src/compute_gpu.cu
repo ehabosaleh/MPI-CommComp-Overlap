@@ -84,6 +84,11 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
             }
             high=mid-1;
         }
+        if (best_time_us <= 0.0) {
+            fprintf(stderr, "Invalid memory-bound calibration time\n");
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+
     }
 
     double bytes=(double)best_elems * 3.0 * sizeof(float);
@@ -94,7 +99,7 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     cal.measured_unit_us = best_time_us;
     cal.bytes_per_us = bytes_per_us;
     cal.gb_per_s = bytes_per_us * 1e6 / 1e9;
-
+    printf("Calibrated memory-bound kernel: %ld elements, %.3f us, %.3f bytes/us, %.3f GB/s\n", cal.elems_per_pass, cal.measured_unit_us, cal.bytes_per_us, cal.gb_per_s);
     return cal;
 }
 __global__ void compute_bound_kernel(float*d_a, size_t n, int repeat, int inner_iters){
@@ -166,6 +171,7 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
             high=mid-1;
         }
     }
+    printf("Calibrated inner iterations: %d (measured unit time: %.3f us, target: %.3f us)\n", best_inner_iters, best_error + target_unit_us, target_unit_us);
 
     return best_inner_iters;
     
