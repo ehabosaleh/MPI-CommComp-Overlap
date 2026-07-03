@@ -65,7 +65,7 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
 
     for(int i=0;i<5;i++){
         measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,warmup_elems,1,max_elems,1.0f,0,NULL,0);
-        printf("Warmup iteration %d completed for memory-bound kernel calibration\n", i + 1);
+        //printf("Warmup iteration %d completed for memory-bound kernel calibration\n", i + 1);
     }
     for (int iter = 0; iter < 30 && low <= high; iter++){
         size_t mid =low+(high-low)/2;
@@ -103,7 +103,8 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     cal.measured_unit_us = best_time_us;
     cal.bytes_per_us = bytes_per_us;
     cal.gb_per_s = bytes_per_us * 1e6 / 1e9;
-    printf("Calibrated memory-bound kernel: %ld elements, %.3f us, %.3f bytes/us, %.3f GB/s\n", cal.elems_per_pass, cal.measured_unit_us, cal.bytes_per_us, cal.gb_per_s);
+    
+    //printf("Calibrated memory-bound kernel: %ld elements, %.3f us, %.3f bytes/us, %.3f GB/s\n", cal.elems_per_pass, cal.measured_unit_us, cal.bytes_per_us, cal.gb_per_s);
     return cal;
 }
 __global__ void compute_bound_kernel(float*d_a, size_t n, int repeat, int inner_iters){
