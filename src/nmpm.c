@@ -376,7 +376,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
             	
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
-            t_comp = compute_on_gpu(d_a,stream,grid,block,local_N,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,req_count,reqs,do_progress,compute_bound);
+            t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,req_count,reqs,do_progress,compute_bound);
 
             MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
 
