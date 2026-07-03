@@ -50,9 +50,9 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
     CHECK_CUDA_ERROR(cudaEventDestroy(stop));
     return (double)time_ms*1000.0;
 }
-
+/*
 gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *d_a,const float *d_b, cudaStream_t stream, int grid, int block, size_t max_elems, double target_unit_us){
-    size_t low=1024;
+    size_t low=1;
     size_t high=max_elems;
 
     size_t best_elems=0;
@@ -104,6 +104,59 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     printf("Calibrated memory-bound kernel: %ld elements, %.3f us, %.3f bytes/us, %.3f GB/s\n", cal.elems_per_pass, cal.measured_unit_us, cal.bytes_per_us, cal.gb_per_s);
     return cal;
 }
+*/
+
+gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *d_a,const float *d_b, cudaStream_t stream, int grid, int block, size_t max_elems, double target_unit_us){
+    size_t elems_per_pass=max_elems;
+
+    int low=1;
+    int high=10000;
+    int best_passes=1;
+
+    double best_error=1e30;
+    double best_time_us=0.0;
+
+    for(int i=0;i<5;i++){
+        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,1.0f,0,NULL,0);
+    }
+
+    for(int iter=0;iter<30 && low<=high;iter++){
+        int mid=low+(high-low)/2;
+
+        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,1.0f,0,NULL,0);
+
+        if(time_us<=0.0){
+            fprintf(stderr,"Invalid memory-bound calibration time\n");
+            MPI_Abort(MPI_COMM_WORLD,1);
+        }
+
+        double error=fabs(time_us-target_unit_us);
+
+        if(error<best_error){
+            best_error=error;
+            best_passes=mid;
+            best_time_us=time_us;
+        }
+
+        if(time_us<target_unit_us){
+            low=mid+1;
+        }else{
+            high=mid-1;
+        }
+    }
+
+    gpu_memory_calibration_t cal;
+    cal.elems_per_pass=elems_per_pass;
+    cal.measured_unit_us=best_time_us;
+    cal.bytes_per_us=((double)elems_per_pass * 3.0 * sizeof(float) * (double)best_passes) / best_time_us;
+    cal.gb_per_s=cal.bytes_per_us * 1e6 / 1e9;
+
+    printf("Calibrated memory-bound kernel: %zu elements, %d passes, %.6f us, %.3f bytes/us, %.3f GB/s\n",
+           cal.elems_per_pass,best_passes,cal.measured_unit_us,cal.bytes_per_us,cal.gb_per_s);
+
+    return cal;
+}
+
 __global__ void compute_bound_kernel(float*d_a, size_t n, int repeat, int inner_iters){
 
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
