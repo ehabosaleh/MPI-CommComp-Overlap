@@ -294,7 +294,7 @@ int  run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRa
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1);
 	}
 	else{
-		mem_cal=calibrate_gpu_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,N,1);
+		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,N,1,1.0f);
 	}	
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
