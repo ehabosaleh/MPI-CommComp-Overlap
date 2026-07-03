@@ -198,7 +198,7 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
         fprintf(stderr,"Invalid compute-bound calibration time\n");
         MPI_Abort(MPI_COMM_WORLD,1);
     }
-    
+
     printf("Calibrated inner iterations: %d (measured unit time: %.3f us, target: %.3f us)\n", best_inner_iters, best_error + target_unit_us, target_unit_us);
     *measured_unit_us = best_unit_us;
     return best_inner_iters;
@@ -231,8 +231,8 @@ void init_vector(size_t n) {
     CHECK_CUDA_ERROR(cudaMallocHost((void**)&h_c,n*sizeof(float)));
     CHECK_CUDA_ERROR(cudaMalloc((void**)&d_c,n*sizeof(float)));
     for(int i=0;i<n;i++){
-            h_a[i]=i;
-            h_b[i]=i;
+            h_a[i]=1.0f;
+            h_b[i]=2.0f;
             h_c[i]=0.0f;    
     }
     CHECK_CUDA_ERROR(cudaMemcpy(d_a,h_a,n*sizeof(float),cudaMemcpyHostToDevice));
