@@ -64,12 +64,12 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     size_t warmup_elems = max_elems < (1UL << 20) ? max_elems : (1UL << 20);
 
     for(int i=0;i<5;i++){
-        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,warmup_elems,1,1.0f,0,NULL,0);
+        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,warmup_elems,1,max_elems,1.0f,0,NULL,0);
     }
     for (int iter = 0; iter < 30; iter++){
         size_t mid =low+(high-low)/2;
 
-        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,mid,1,1.0f,0,NULL,0);
+        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,mid,1,max_elems,1.0f,0,NULL,0);
 
         double error=fabs(time_us-target_unit_us);
 
@@ -198,7 +198,7 @@ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_
         if(passes<1){
             passes=1;
         }
-        return measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,cal.elems_per_pass,passes,1.0f,req_count,reqs,do_progress);
+        return measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,cal.elems_per_pass,passes, max_elems,1.0f,req_count,reqs,do_progress);
     }
 
 }
