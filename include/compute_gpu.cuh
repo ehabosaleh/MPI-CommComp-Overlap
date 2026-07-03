@@ -17,6 +17,13 @@ typedef enum{
     ALLTOALL=3
 } TransferType;
 
+typedef struct {
+    size_t elems_per_pass;
+    double measured_unit_us;
+    double bytes_per_us;
+    double gb_per_s;
+} gpu_memory_calibration_t;
+
 typedef enum{
     TPB_64=64,
     TPB_128=128,
@@ -26,7 +33,11 @@ typedef enum{
 }threadsPerBlock;
 
 extern float *d_a;
+extern float *d_b;
 extern float*h_a;
+extern float*h_b;
+extern float *d_c;
+extern float *h_c;
 
 
 #define CHECK_CUDA_ERROR(call) { \
@@ -39,7 +50,7 @@ extern float*h_a;
 
 
 
-__global__ void compute_kernel_calibrate(float*d_a, size_t n, int repeat, int inner_iters);
+__global__ void compute_bound_kernel(float*d_a, size_t n, int repeat, int inner_iters);
 double measure_gpu_kernel_us(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters,int req_count, MPI_Request *reqs,int do_progress);
 int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us);
 
