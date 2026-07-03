@@ -263,8 +263,11 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress,int compute_bound){
 	int iter;
 	int gpu_inner_iters;
-	size_t max_elems=VECTOR_DIM;
+	
 	gpu_memory_calibration_t mem_cal={0,0,0,0};
+	size_t elems_per_pass = ELEMS_PER_PASS;
+	size_t max_elems = VECTOR_DIM;
+	size_t N = max_elems;
 
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
     double overlap=0.0;
@@ -288,7 +291,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	CHECK_CUDA_ERROR(cudaStreamCreate(&stream));
 	int grid=prop.multiProcessorCount*4;
 	int block=TPB_256;
-	size_t N=(size_t)VECTOR_DIM;
+	
 	init_vector(N);
 
 
@@ -296,16 +299,16 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,N,1);
 	}
 	else{
+
+		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,elems_per_pass,max_elems,50);
 		if (rank == 0) {
-    		printf("VECTOR_DIM = %zu elements\n", (size_t)VECTOR_DIM);
-    		printf("N          = %zu elements\n", N);
-    		printf("max_elems  = %zu elements\n", max_elems);
-    		printf("per vector = %.3f MB\n",(double)(max_elems * sizeof(float)) / (1024.0 * 1024.0));
-    		printf("3 vectors  = %.3f MB\n",(double)(3.0 * max_elems * sizeof(float)) / (1024.0 * 1024.0));
+    		printf("elems_per_pass = %zu\n", elems_per_pass);
+    		printf("max_elems      = %zu\n", max_elems);
+    		printf("max passes     = %zu\n", max_elems / elems_per_pass);
+    		printf("per vector     = %.3f MB\n",(double)(max_elems * sizeof(float)) / (1024.0 * 1024.0));
+    		printf("3 vectors      = %.3f MB\n",(double)(3.0 * max_elems * sizeof(float)) / (1024.0 * 1024.0));
     		fflush(stdout);
 		}
-
-		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,max_elems,50);
 	}	
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
