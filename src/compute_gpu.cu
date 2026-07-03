@@ -55,7 +55,7 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
 }
 
 gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *d_a,const float *d_b, cudaStream_t stream, int grid, int block, size_t max_elems, double target_unit_us){
-    size_t low=1024;
+    size_t low=1UL << 20;
     size_t high=max_elems;
 
     size_t best_elems=low;
