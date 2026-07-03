@@ -260,7 +260,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 
 #if HAVE_CUDA
 
-int  run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress,int compute_bound){
+int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress,int compute_bound){
 	int iter;
 	int gpu_inner_iters;
 	size_t max_elems=VECTOR_DIM;
