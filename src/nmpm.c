@@ -264,7 +264,7 @@ int  run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRa
 	int iter;
 	int gpu_inner_iters;
 	size_t max_elems=VECTOR_DIM;
-	gpu_memory_calibration_t mem_cal={0,0,0,0,0};
+	gpu_memory_calibration_t mem_cal={0,0,0,0};
 
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
     double overlap=0.0;
