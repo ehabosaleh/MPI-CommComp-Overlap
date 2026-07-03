@@ -7,7 +7,8 @@ int main(int argc, char *argv[]){
     long min_bytes=MIN_MESSAGE_SIZE;
     long max_bytes=MAX_MESSAGE_SIZE;
     int do_progress=0;
-
+    int compute_bound=1;
+    
     for(int i=0;i<argc;i++){
         if(strncmp(argv[i],"--dim=",6)==0 ){
             dim=atoi(argv[i]+6);
@@ -52,7 +53,6 @@ int main(int argc, char *argv[]){
                 return -1;
             }
         }
-
         else if(strncmp(argv[i],"--ratio=",8)==0){
             compToPureCommRatio=atoi(argv[i]+8);
             if(compToPureCommRatio<0){
@@ -62,10 +62,30 @@ int main(int argc, char *argv[]){
                 return -1;
             }
         }
-        else if(strcmp(argv[i],"--help")==0){
+        else if(strncmp(argv[i],"--compute-bound=",16)==0){
+            compute_bound=atoi(argv[i]+16);
+            if(compute_bound!=0 && compute_bound!=1){
+                fprintf(stderr, "Invalid compute-bound flag specified. Use 0 for memory-bound or 1 for compute-bound.\n");
+                return -1;
+            }
+        }
+        else if(strncmp(argv[i],"--help",6)==0){
             usage(argv[0]);
             return 0;
         }
+        else if(strncmp(argv[i],"--h",3)==0){
+            usage(argv[0]);
+            return 0;
+        }
+        else if(strncmp(argv[i],"-h",2)==0){
+            usage(argv[0]);
+            return 0;
+        }
+        else if(strncmp(argv[i],"-help",5)==0){
+            usage(argv[0]);
+            return 0;
+        }
+
     }
     if(min_bytes>max_bytes){
         fprintf(stderr,"Maximum message size must be larger than minimum message size\n ");
@@ -89,7 +109,7 @@ int main(int argc, char *argv[]){
 
     else if(dev==1){
 	#if HAVE_CUDA    
-        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,do_progress);
+        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,do_progress,compute_bound);
 
 	#else
 	fprintf(stderr, "GPU mode requested, but this binary was built without CUDA support.\n");
