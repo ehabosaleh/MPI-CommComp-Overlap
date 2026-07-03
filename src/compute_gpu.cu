@@ -205,9 +205,9 @@ void init_vector(int n) {
             h_b[i]=i;
             h_c[i]=0.0f;    
     }
-    CUDA_CHECK_ERROR(cudaMemcpy(d_a,h_a,n*sizeof(float),cudaMemcpyHostToDevice));
-    CUDA_CHECK_ERROR(cudaMemcpy(d_b,h_b,n*sizeof(float),cudaMemcpyHostToDevice));
-    CUDA_CHECK_ERROR(cudaMemcpy(d_c,h_c,n*sizeof(float),cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERROR(cudaMemcpy(d_a,h_a,n*sizeof(float),cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERROR(cudaMemcpy(d_b,h_b,n*sizeof(float),cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERROR(cudaMemcpy(d_c,h_c,n*sizeof(float),cudaMemcpyHostToDevice));
 }
 void free_vector(void){
     CHECK_CUDA_ERROR(cudaFree(d_a));
