@@ -104,7 +104,7 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     cal.bytes_per_us = bytes_per_us;
     cal.gb_per_s = bytes_per_us * 1e6 / 1e9;
     
-    //printf("Calibrated memory-bound kernel: %ld elements, %.3f us, %.3f bytes/us, %.3f GB/s\n", cal.elems_per_pass, cal.measured_unit_us, cal.bytes_per_us, cal.gb_per_s);
+    printf("Calibrated memory-bound kernel: %ld elements, %.3f us, %.3f bytes/us, %.3f GB/s\n", cal.elems_per_pass, cal.measured_unit_us, cal.bytes_per_us, cal.gb_per_s);
     return cal;
 }
 __global__ void compute_bound_kernel(float*d_a, size_t n, int repeat, int inner_iters){
