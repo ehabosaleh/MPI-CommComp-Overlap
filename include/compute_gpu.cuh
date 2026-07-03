@@ -53,7 +53,8 @@ extern float *h_c;
 __global__ void compute_bound_kernel(float*d_a, size_t n, int repeat, int inner_iters);
 double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters,int req_count, MPI_Request *reqs,int do_progress);
 int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us);
-__global__ void memory_bound_kernel(float *d_c, const float *d_a,const float *d_b, size_t n, int repeat, int inner_iters);
+
+__global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__restrict__ d_a,const float *__restrict__ d_b,size_t elems_per_pass,int passes,float alpha);
 double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const float *d_b, cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters,float alpha,int req_count, MPI_Request *reqs,int do_progress);
 gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *d_a,const float *d_b, cudaStream_t stream, int grid, int block,size_t n,int repeat,float alpha);
 

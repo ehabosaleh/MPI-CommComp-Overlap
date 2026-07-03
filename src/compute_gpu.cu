@@ -15,7 +15,7 @@ __global__ void compute_kernel(float *d_a, size_t n) {
         d_a[i] = d_a[i] * d_a[i]+1.0f;
     }
 }
-__ global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__restrict__ d_a,const float *__restrict__ d_b,size_t elems_per_pass,int passes,float alpha){
+__global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__restrict__ d_a,const float *__restrict__ d_b,size_t elems_per_pass,int passes,float alpha){
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     size_t stride = blockDim.x * gridDim.x;
     for (int p=0;p<passes;p++){
