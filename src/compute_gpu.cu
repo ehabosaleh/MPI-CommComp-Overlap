@@ -19,13 +19,10 @@ __global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__rest
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     size_t stride = blockDim.x * gridDim.x;
     for (int p=0;p<passes;p++){
-        size_t offset=p*elems_per_pass;
         for (size_t i = idx; i < elems_per_pass; i += stride) {
-            size_t j = i + offset;
-            if(j<max_elems){
-                d_c[j] = alpha*d_a[j] + d_b[j];
-            }
+                d_c[i] = alpha*d_a[i] + d_b[i];
         }
+    
     }
 }
 
