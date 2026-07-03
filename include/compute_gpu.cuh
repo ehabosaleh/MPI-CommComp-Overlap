@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define VECTOR_DIM 1000000
+#define VECTOR_DIM 160000000
 
 typedef enum{
     H2D=0,
