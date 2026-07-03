@@ -205,7 +205,7 @@ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_
 
 }
 
-void init_vector(int n) {
+void init_vector(size_t n) {
     CHECK_CUDA_ERROR(cudaMallocHost((void**)&h_a,n*sizeof(float)));
     CHECK_CUDA_ERROR(cudaMalloc((void**)&d_a,n*sizeof(float)));
     CHECK_CUDA_ERROR(cudaMallocHost((void**)&h_b,n*sizeof(float)));

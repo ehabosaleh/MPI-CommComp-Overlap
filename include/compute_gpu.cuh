@@ -60,7 +60,7 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
 
 double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters, size_t max_elems,gpu_memory_calibration_t cal, int req_count, MPI_Request *reqs , int do_progress, int compute_bound);
 __global__ void compute_kernel(float *d_a, size_t n);
-void init_vector(int n);
+void init_vector(size_t n);
 void free_vector(void);
 #ifdef __cplusplus
 }
