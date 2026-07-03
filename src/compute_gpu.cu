@@ -58,9 +58,10 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     size_t best_elems=low;
     double best_error=1e30;
     double best_time_us=0.0;
+    size_t warmup_elems = max_elems < (1UL << 20) ? max_elems : (1UL << 20);
 
     for(int i=0;i<5;i++){
-        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,low,1,1.0f,0,NULL,0);
+        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,warmup_elems,1,1.0f,0,NULL,0);
     }
     for (int iter = 0; iter < 30; iter++){
         size_t mid =low+(high-low)/2;
