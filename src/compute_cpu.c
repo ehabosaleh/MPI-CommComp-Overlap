@@ -13,8 +13,6 @@ size_t mb_elems = 0;
 volatile double host_sink = 0.0;
 
 int init_memory_bound_buffers(size_t bytes){
-	if (bytes < SIZE_THRESHOLD)
-        bytes = SIZE_THRESHOLD;
 		
 	mb_elems=bytes/sizeof(double);
 
@@ -36,8 +34,7 @@ int init_memory_bound_buffers(size_t bytes){
     return 0;
 }
 
-void free_memory_bound_buffers(void)
-{
+void free_memory_bound_buffers(void){
     free(mb_a);
     free(mb_b);
     free(mb_c);
