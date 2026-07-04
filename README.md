@@ -2,7 +2,7 @@
 
 NMPM quantifies how much communication can be hidden behind computation when using nonblocking MPI operations (`MPI_Isend`, `MPI_Irecv`, `MPI_Waitall`) in a 1D, 2D and 3D neighbor-exchange pattern.
 
-The benchmark runs three phases:
+For each process, the benchmark runs three phases:
 
 1. **Pure communication**  
 2. **Pure computation**  
