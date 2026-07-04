@@ -32,10 +32,10 @@ extern double a[ARRAY_DIM * ARRAY_DIM];
 extern double y[ARRAY_DIM];
 
 
-extern double *mb_a=NULL;
-extern double *mb_b=NULL;
-extern double *mb_c=NULL;
-extern size_t mb_elems= 0;
+extern double *mb_a;
+extern double *mb_b;
+extern double *mb_c;
+extern size_t mb_elems;
 
 extern volatile double host_sink = 0.0;
 
