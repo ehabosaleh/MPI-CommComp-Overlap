@@ -37,7 +37,7 @@ extern double *mb_b;
 extern double *mb_c;
 extern size_t mb_elems;
 
-extern volatile double host_sink = 0.0;
+extern volatile double host_sink;
 
 int init_memory_bound_buffers(size_t bytes);
 void free_memory_bound_buffers(void);
