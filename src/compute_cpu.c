@@ -107,19 +107,16 @@ NOINLINE void cpu_memory_bound_batch(void){
 
     host_sink +=mb_c[mb_elems-1];
 }
-void compute_on_host(double latency_sec, int size_threshold, int compute_bound)
-{
-    (void)size_threshold;
+void compute_on_host(double latency_sec,int compute_bound){
+    if(latency_sec<MIN_COMPUTE_SEC)
+        latency_sec=MIN_COMPUTE_SEC;
 
-    if (latency_sec < MIN_COMPUTE_SEC)
-        latency_sec = MIN_COMPUTE_SEC;
-
-    double start = MPI_Wtime();
-    double now = start;
+    double start=MPI_Wtime();
+    double now=start;
 
     int check_interval;
 
-    if (latency_sec <= 10.0e-6)
+    if(latency_sec <= 10.0e-6)
         check_interval = TIME_CHECK_INTERVAL_SHORT;
     else
         check_interval = TIME_CHECK_INTERVAL_LONG;
