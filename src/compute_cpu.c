@@ -98,7 +98,7 @@ NOINLINE void cpu_compute_bound_batch(void){
 
     host_sink += r0 + r1 + r2 + r3 + r4 + r5 + r6 + r7;
 }
-static NOINLINE void cpu_memory_bound_batch(void){
+NOINLINE void cpu_memory_bound_batch(void){
     if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
         fprintf(stderr, "Memory-bound buffers are not initialized.\n");
         return;
