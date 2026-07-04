@@ -12,6 +12,8 @@ size_t mb_elems = 0;
 
 volatile double host_sink = 0.0;
 
+static size_t mb_offset = 0;
+
 int init_memory_bound_buffers(size_t bytes){
 		
 	mb_elems=bytes/sizeof(double);
@@ -96,18 +98,32 @@ NOINLINE void cpu_compute_bound_batch(void){
 
     host_sink += r0 + r1 + r2 + r3 + r4 + r5 + r6 + r7;
 }
-NOINLINE void cpu_memory_bound_batch(void){
-    if (mb_a==NULL||mb_b==NULL||mb_c==NULL||mb_elems==0) {
+static NOINLINE void memory_bound_batch(void){
+    if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
         fprintf(stderr, "Memory-bound buffers are not initialized.\n");
         return;
     }
 
-    for (size_t i = 0; i < mb_elems; i++) {
+    size_t chunk = MEMORY_CHUNK_ELEMS;
+
+    if (chunk > mb_elems)
+        chunk = mb_elems;
+
+    if (mb_offset + chunk > mb_elems)
+        mb_offset = 0;
+
+    size_t start = mb_offset;
+    size_t end   = mb_offset + chunk;
+
+    for (size_t i = start; i < end; i++) {
         mb_c[i] = mb_a[i] + A * mb_b[i];
     }
 
-    host_sink +=mb_c[mb_elems-1];
+    mb_offset += chunk;
+
+    host_sink += mb_c[end - 1];
 }
+
 void compute_on_host(double latency_sec,int compute_bound){
     if(latency_sec<MIN_COMPUTE_SEC)
         latency_sec=MIN_COMPUTE_SEC;
