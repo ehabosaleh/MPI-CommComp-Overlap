@@ -26,17 +26,17 @@ extern "C" {
 #define SIZE_THRESHOLD 65536
 #define A 0.5
 
-extern double x[ARRAY_DIM];
-extern double a[ARRAY_DIM * ARRAY_DIM];
-extern double y[ARRAY_DIM];
+double x[ARRAY_DIM];
+double a[ARRAY_DIM * ARRAY_DIM];
+double y[ARRAY_DIM];
 
 
-extern double *mb_a;
-extern double *mb_b;
-extern double *mb_c;
-extern size_t mb_elems;
+double *mb_a=NULL;
+double *mb_b=NULL;
+double *mb_c=NULL;
+size_t mb_elems= 0;
 
-extern volatile double host_sink = 0.0;
+volatile double host_sink = 0.0;
 
 int init_memory_bound_buffers(size_t bytes);
 void free_memory_bound_buffers(void);

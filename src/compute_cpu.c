@@ -2,10 +2,7 @@
 #include<mpi.h>
 #include"compute_cpu.h"
 
-double *mb_a = NULL;
-double *mb_b = NULL;
-double *mb_c = NULL;
-size_t mb_elems = 0;
+
 
 
 int init_memory_bound_buffers(size_t bytes){
