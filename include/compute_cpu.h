@@ -7,7 +7,7 @@
 #define NOINLINE
 #endif
 
-#define MIN_COMPUTE_SEC1.0e-6
+#define MIN_COMPUTE_SEC 1.0e-6
 #define COMPUTE_INNER_ITERS 128
 #define TIME_CHECK_INTERVAL_SHORT 1
 #define TIME_CHECK_INTERVAL_LONG 32
@@ -43,7 +43,7 @@ NOINLINE void cpu_memory_bound_batch(void);
 
 //void compute_on_host(double latency, int size_threshold);
 
-void compute_on_host(double latency, int size_threshold, int compute_bound);
+void compute_on_host(double latency, int compute_bound);
 
 #ifdef __cplusplus
 }
