@@ -29,15 +29,21 @@ extern double a[ARRAY_DIM * ARRAY_DIM];
 extern double y[ARRAY_DIM];
 
 
-static double *mb_a = NULL;
-static double *mb_b = NULL;
-static double *mb_c = NULL;
-static size_t mb_elems = 0;
-static volatile double host_sink = 0.0;
+extern double *mb_a = NULL;
+extern double *mb_b = NULL;
+extern double *mb_c = NULL;
+extern size_t mb_elems = 0;
+extern volatile double host_sink = 0.0;
 
-void init_arrays(void);
+int init_memory_bound_buffers(size_t bytes);
+void free_memory_bound_buffers(void);
 
-void compute_on_host(double latency, int size_threshold);
+NOINLINE void cpu_compute_bound_batch(void);
+NOINLINE void cpu_memory_bound_batch(void);
+
+//void compute_on_host(double latency, int size_threshold);
+
+void compute_on_host(double latency, int size_threshold, int compute_bound);
 
 #ifdef __cplusplus
 }
