@@ -104,7 +104,7 @@ int main(int argc, char *argv[]){
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
     if(dev==0){
-         run_overlap_benchmark(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes);
+         run_overlap_benchmark(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,compute_bound);
     }
 
     else if(dev==1){
