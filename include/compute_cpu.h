@@ -2,6 +2,7 @@
 #define COMPUTE_CPU_H
 #include <stdio.h>
 #include <stdlib.h>
+#include<mpi.h>
 
 #if defined(__GNUC__) || defined(__clang__)
 #define NOINLINE __attribute__((noinline))
@@ -26,17 +27,17 @@ extern "C" {
 #define SIZE_THRESHOLD 65536
 #define A 0.5
 
-double x[ARRAY_DIM];
-double a[ARRAY_DIM * ARRAY_DIM];
-double y[ARRAY_DIM];
+extern double x[ARRAY_DIM];
+extern double a[ARRAY_DIM * ARRAY_DIM];
+extern double y[ARRAY_DIM];
 
 
-double *mb_a=NULL;
-double *mb_b=NULL;
-double *mb_c=NULL;
-size_t mb_elems= 0;
+extern double *mb_a=NULL;
+extern double *mb_b=NULL;
+extern double *mb_c=NULL;
+extern size_t mb_elems= 0;
 
-volatile double host_sink = 0.0;
+extern volatile double host_sink = 0.0;
 
 int init_memory_bound_buffers(size_t bytes);
 void free_memory_bound_buffers(void);

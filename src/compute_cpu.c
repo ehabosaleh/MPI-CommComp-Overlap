@@ -1,9 +1,16 @@
-#include<stdlib.h>
-#include<mpi.h>
 #include"compute_cpu.h"
 
 
+double x[ARRAY_DIM];
+double a[ARRAY_DIM * ARRAY_DIM];
+double y[ARRAY_DIM];
 
+double *mb_a = NULL;
+double *mb_b = NULL;
+double *mb_c = NULL;
+size_t mb_elems = 0;
+
+volatile double host_sink = 0.0;
 
 int init_memory_bound_buffers(size_t bytes){
 	if (bytes < SIZE_THRESHOLD)
