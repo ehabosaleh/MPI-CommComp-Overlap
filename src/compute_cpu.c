@@ -5,26 +5,26 @@ double x[ARRAY_DIM];
 double a[ARRAY_DIM * ARRAY_DIM];
 double y[ARRAY_DIM];
 
-double *mb_a = NULL;
-double *mb_b = NULL;
-double *mb_c = NULL;
-size_t mb_elems = 0;
+double *mb_a=NULL;
+double *mb_b=NULL;
+double *mb_c=NULL;
+size_t mb_elems=0;
 
-volatile double host_sink = 0.0;
+volatile double host_sink=0.0;
 
-static size_t mb_offset = 0;
+static size_t mb_offset=0;
 
 int init_memory_bound_buffers(size_t bytes){
 		
 	mb_elems=bytes/sizeof(double);
 
-    if(posix_memalign((void **)&mb_a, 64, mb_elems * sizeof(double)) != 0)
+    if(posix_memalign((void **)&mb_a,64,mb_elems * sizeof(double)) != 0)
 		return -1;
 
-    if(posix_memalign((void **)&mb_b, 64, mb_elems * sizeof(double)) != 0)
+    if(posix_memalign((void **)&mb_b,64,mb_elems*sizeof(double)) != 0)
         return -1;
 
-    if(posix_memalign((void **)&mb_c, 64, mb_elems * sizeof(double)) != 0)
+    if(posix_memalign((void **)&mb_c,64,mb_elems*sizeof(double)) != 0)
         return -1;
 
     for(size_t i=0; i<mb_elems;i++) {

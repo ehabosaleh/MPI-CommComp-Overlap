@@ -167,7 +167,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 		find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,1);
 	}
 
-	init_memory_bound_buffers(256UL * 1024UL * 1024UL);
+	init_memory_bound_buffers(256UL*1024UL*1024UL);
     if (rank==0) {
 		if (dim==3) {
 			printf("\nRunning 3D benchmark on CPU with ranks grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
