@@ -1,0 +1,90 @@
+#include<stdlib.h>
+#include<stdio.h>
+
+
+#if defined(__GNUC__) || defined(__clang__)
+#define NOINLINE __attribute__((noinline))
+#else
+#define NOINLINE
+#endif
+
+#define MEMORY_CHUNK_ELEMS 1024
+#define TIME_CHECK_INTERVAL_SHORT 1
+#define TIME_CHECK_INTERVAL_LONG 32
+#define A 2.0
+
+volatile double host_sink=0.0;
+
+static size_t mb_offset=0;
+
+double *mb_a=NULL;
+double *mb_b=NULL;
+double *mb_c=NULL;
+size_t mb_elems=0;
+
+int init_memory_bound_buffers(size_t bytes){
+
+	mb_elems=bytes/sizeof(double);
+
+    if(posix_memalign((void **)&mb_a,64,mb_elems * sizeof(double)) != 0)
+		return -1;
+
+    if(posix_memalign((void **)&mb_b,64,mb_elems*sizeof(double)) != 0)
+        return -1;
+
+    if(posix_memalign((void **)&mb_c,64,mb_elems*sizeof(double)) != 0)
+        return -1;
+
+    for(size_t i=0; i<mb_elems;i++) {
+        mb_a[i]=1.0;
+        mb_b[i]=2.0;
+        mb_c[i]=0.0;
+    }
+
+    return 0;
+}
+
+void free_memory_bound_buffers(void){
+    free(mb_a);
+    free(mb_b);
+    free(mb_c);
+
+    mb_a = NULL;
+    mb_b = NULL;
+    mb_c = NULL;
+    mb_elems = 0;
+}
+
+NOINLINE void cpu_memory_bound_batch(void){
+    if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
+        fprintf(stderr, "Memory-bound buffers are not initialized.\n");
+        return;
+    }
+
+    size_t chunk = MEMORY_CHUNK_ELEMS;
+
+    if (chunk > mb_elems)
+        chunk = mb_elems;
+
+    if (mb_offset + chunk > mb_elems)
+        mb_offset = 0;
+
+    size_t start = mb_offset;
+    size_t end   = mb_offset + chunk;
+
+    for (size_t i = start; i < end; i++) {
+        mb_c[i] = mb_a[i] + A * mb_b[i];
+    }
+
+    mb_offset += chunk;
+
+    host_sink += mb_c[end - 1];
+}
+int main(void){
+	init_memory_bound_buffers(256UL*1024UL*1024UL);
+	
+	for(int i=0;i<1000000;i++)
+		cpu_memory_bound_batch();
+	free_memory_bound_buffers();
+
+}
