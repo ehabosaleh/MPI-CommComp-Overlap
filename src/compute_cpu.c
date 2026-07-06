@@ -46,27 +46,6 @@ void free_memory_bound_buffers(void){
     mb_c = NULL;
     mb_elems = 0;
 }
-/*
-void compute_on_host(double latency, int size_threshold){
-	int i,j;
-
-	double ccompute_start=MPI_Wtime();
-	double ccompute_end=ccompute_start;
-	if(size_threshold>=SIZE_THRESHOLD)
-		while((ccompute_end-ccompute_start)<latency){
-				for(i=0;i<ARRAY_DIM;i++)
-					for(j=0;j<ARRAY_DIM;j++)
-						x[i]=x[i]+A*a[i*ARRAY_DIM+j]*y[j];
-				ccompute_end=MPI_Wtime();
-		}
-	else{
-		while((ccompute_end-ccompute_start)<latency){
-				x[0]=x[0]+A*a[0]*y[0];
-				ccompute_end=MPI_Wtime();
-		}
-	}
-}
-*/
 
 NOINLINE void cpu_compute_bound_batch(void){
     double r0=x[0]+1.0e-30*host_sink;
@@ -98,7 +77,7 @@ NOINLINE void cpu_compute_bound_batch(void){
 
     host_sink+=r0+r1+r2+r3+r4+r5+r6+r7;
 }
-NOINLINE void cpu_memory_bound_batch(void){
+NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode){
     if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
         fprintf(stderr, "Memory-bound buffers are not initialized.\n");
         return;
@@ -114,9 +93,30 @@ NOINLINE void cpu_memory_bound_batch(void){
 
     size_t start = mb_offset;
     size_t end   = mb_offset + chunk;
-
-    for (size_t i = start; i < end; i++) {
-        mb_c[i] = mb_a[i] + A * mb_b[i];
+    switch (memory_mode) {
+        case MEMORY_MODE_TRIAD:
+            for (size_t i = start; i < end; i++) {
+                mb_c[i] = mb_a[i] + A * mb_b[i];
+            }
+            break;
+        case MEMORY_MODE_COPY:
+            for (size_t i = start; i < end; i++) {
+                mb_c[i] = mb_a[i];
+            }
+            break;
+        case MEMORY_MODE_SCALE:
+            for (size_t i = start; i < end; i++) {
+                mb_c[i] = A * mb_a[i];
+            }
+            break;
+        case MEMORY_MODE_ADD:
+            for (size_t i = start; i < end; i++) {
+                mb_c[i] = mb_a[i] + mb_b[i];
+            }
+            break;
+        default:
+            fprintf(stderr, "Invalid memory mode specified.\n");
+            return;
     }
 
     mb_offset += chunk;
@@ -124,7 +124,7 @@ NOINLINE void cpu_memory_bound_batch(void){
     host_sink += mb_c[end - 1];
 }
 
-void compute_on_host(double latency_sec,int compute_bound){
+void compute_on_host(double latency_sec,int compute_bound,memory_mode_t memory_mode){
     if(latency_sec<MIN_COMPUTE_SEC)
         latency_sec=MIN_COMPUTE_SEC;
 
@@ -143,7 +143,7 @@ void compute_on_host(double latency_sec,int compute_bound){
             if (compute_bound) {
                 cpu_compute_bound_batch();
             } else {
-                cpu_memory_bound_batch();
+                cpu_memory_bound_batch(memory_mode);
             }
         }
 
