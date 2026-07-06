@@ -45,7 +45,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 #endif
 
 void usage(char *prog_name);
-int run_overlap_benchmark(int rank,int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes, int compute_bound);
+int run_overlap_benchmark(int rank,int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes, int compute_bound,memory_mode_t memory_mode);
 
 #ifdef __cplusplus
 }
