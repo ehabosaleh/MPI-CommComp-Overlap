@@ -219,7 +219,7 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     return best_inner_iters;
     
 }
-double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters, size_t max_elems,gpu_memory_calibration_t cal, int req_count, MPI_Request *reqs , int do_progress, int compute_bound){
+double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters, size_t max_elems,gpu_memory_calibration_t cal, int req_count, MPI_Request *reqs , int do_progress, int compute_bound, memory_mode_t mode){
     if(latency_us<=0.0){
         return 0.0;
     }
@@ -233,7 +233,7 @@ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_
             passes=1;
         }
 
-        return measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,cal.elems_per_pass,passes,max_elems,1.0f,req_count,reqs,do_progress);
+        return measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,cal.elems_per_pass,passes,max_elems,1.0f,req_count,reqs,do_progress,mode);
     }
 
 }
