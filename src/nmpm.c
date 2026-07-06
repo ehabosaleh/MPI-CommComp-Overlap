@@ -137,7 +137,7 @@ static void post_sendrecv(int left,int right, int front, int back, int bottom, i
 
 }
 
-int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, long min_bytes,long max_bytes, int compute_bound) {
+int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, long min_bytes,long max_bytes, int compute_bound,memory_mode_t memory_mode){ {
 	int iter;
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
     double overlap=0.0;
@@ -216,7 +216,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);	
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
             double tcomp_start = MPI_Wtime();
-            compute_on_host((targetComputeTime/1e6),compute_bound);
+            compute_on_host((targetComputeTime/1e6),compute_bound,memory_mode);
             t_comp = MPI_Wtime()-tcomp_start;
 			
             MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
