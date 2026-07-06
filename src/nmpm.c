@@ -179,7 +179,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 		}
 		printf("Compute-bound benchmark: %s\n", compute_bound ? "Yes" : "No");
 		if (!compute_bound) {
-			printf("Memory mode: %s\n", memory_mode == TRIAD ? "Triad" : memory_mode == COPY ? "Copy" : memory_mode == SCALE ? "Scale" : "Add");
+			printf("Memory-bound mode: %s\n", memory_mode == MEMORY_MODE_TRIAD ? "Triad" : memory_mode == MEMORY_MODE_COPY ? "Copy" : memory_mode == MEMORY_MODE_SCALE ? "Scale" : "Add");
 		}
 		printf("With manual progress: %s\n", do_progress ? "Yes" : "No");
 		printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
@@ -345,7 +345,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 			printf("With manual progress: %s\n", do_progress ? "Yes" : "No");
 			printf("Compute-bound: %s\n", compute_bound ? "Yes" : "No");
 			if(!compute_bound) {
-				printf("Memory-bound mode: %s\n", memory_mode == TRIAD ? "Triad" : memory_mode == COPY ? "Copy" : memory_mode == SCALE ? "Scale" : "Add");
+				printf("Memory-bound mode: %s\n", memory_mode == MEMORY_MODE_TRIAD ? "Triad" : memory_mode == MEMORY_MODE_COPY ? "Copy" : memory_mode == MEMORY_MODE_SCALE ? "Scale" : "Add");
 			}
 
         	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Kernel(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
