@@ -4,6 +4,14 @@
 #include <stdlib.h>
 #include<mpi.h>
 
+
+typedef enum {
+    MEMORY_MODE_TRIAD,
+    MEMORY_MODE_COPY,
+    MEMORY_MODE_SCALE,
+    MEMORY_MODE_ADD
+} memory_mode_t;
+
 #if defined(__GNUC__) || defined(__clang__)
 #define NOINLINE __attribute__((noinline))
 #else
@@ -13,8 +21,8 @@
 #define MIN_COMPUTE_SEC 1.0e-6
 #define COMPUTE_INNER_ITERS 128
 #define TIME_CHECK_INTERVAL_SHORT 1
-#define TIME_CHECK_INTERVAL_LONG 16
-#define MEMORY_CHUNK_ELEMS 2048
+#define TIME_CHECK_INTERVAL_LONG 32
+#define MEMORY_CHUNK_ELEMS 1024
 
 #ifdef __cplusplus
 #define RESTRICT __restrict__
@@ -43,12 +51,11 @@ int init_memory_bound_buffers(size_t bytes);
 void free_memory_bound_buffers(void);
 
 NOINLINE void cpu_compute_bound_batch(void);
-NOINLINE void cpu_memory_bound_batch(void);
+NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode);
 
 //void compute_on_host(double latency, int size_threshold);
 
-void compute_on_host(double latency, int compute_bound);
-
+void compute_on_host(double latency, int compute_bound,memory_mode_t memory_mode);
 #ifdef __cplusplus
 }
 #endif
