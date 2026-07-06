@@ -1,7 +1,7 @@
 #include"nmpm.h"
 
 void usage(char *prog_name) {
-	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu/cpu] [--with-progress=y/n] [--min-bytes=N] [--max-bytes=N]\n", prog_name);
+	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu/cpu] [--with-progress=y/n] [--min-bytes=N] [--max-bytes=N] [--memory-mode=MODE]\n", prog_name);
 	fprintf(stderr, "--dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n");
 	fprintf(stderr, "--ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
 	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n");
@@ -9,7 +9,8 @@ void usage(char *prog_name) {
 	fprintf(stderr,"--min-bytes: Desired minimum number of bytes\n");
 	fprintf(stderr,"--max-bytes: Desired maximum number of bytes\n");
 	fprintf(stderr,"--compute-bound: Flag to indicate compute-bound benchmark\n");
-	fprintf(stderr,"Example: mpirun --hostfile hostfile -np <num_processes> ./test --dim=2 --ratio=50 --dev=1 --with-progress=1 --min-bytes=1024 --max-bytes=1048576 --compute-bound=1\n");
+	fprintf(stderr,"--memory-mode: Mode for memory-bound operations (triad, copy, scale, add)\n");
+	fprintf(stderr,"Example: mpirun --hostfile hostfile -np <num_processes> ./test --dim=2 --ratio=50 --dev=1 --with-progress=1 --min-bytes=1024 --max-bytes=1048576 --compute-bound=0 --memory-mode=triad\n");
 }
 
 static int get_local_rank(){
