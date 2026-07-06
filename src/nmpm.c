@@ -260,7 +260,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 
 #if HAVE_CUDA
 
-int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress,int compute_bound){
+int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress,int compute_bound, memory_mode_t){
 	int iter;
 	int gpu_inner_iters;
 	
@@ -301,7 +301,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	}
 	else{
 
-		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,elems_per_pass,max_elems,50);
+		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,elems_per_pass,max_elems,50,memory_mode);
 		if (rank == 0) {
     		printf("elems_per_pass = %zu\n", elems_per_pass);
     		printf("max_elems      = %zu\n", max_elems);
@@ -376,7 +376,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
             	
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
-            t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,req_count,reqs,do_progress,compute_bound);
+            t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,req_count,reqs,do_progress,compute_bound,memory_mode);
 
             MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
 
