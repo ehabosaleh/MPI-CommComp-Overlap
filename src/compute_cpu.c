@@ -133,7 +133,7 @@ void compute_on_host(double latency_sec,int compute_bound){
 
     int check_interval;
 
-    if(latency_sec <= 10.0e-6)
+    if(latency_sec <= 1000.0e-6)
         check_interval = TIME_CHECK_INTERVAL_SHORT;
     else
         check_interval = TIME_CHECK_INTERVAL_LONG;
