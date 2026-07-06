@@ -137,7 +137,7 @@ static void post_sendrecv(int left,int right, int front, int back, int bottom, i
 
 }
 
-int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, long min_bytes,long max_bytes, int compute_bound,memory_mode_t memory_mode){ {
+int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, long min_bytes,long max_bytes, int compute_bound,memory_mode_t memory_mode){ 
 	int iter;
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
     double overlap=0.0;
