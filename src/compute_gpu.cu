@@ -1,4 +1,5 @@
 #include"compute_gpu.cuh"
+#include"compute_cpu.h"
 
 float *d_a=nullptr;
 float *h_a=nullptr;
@@ -15,20 +16,34 @@ __global__ void compute_kernel(float *d_a, size_t n) {
         d_a[i] = d_a[i] * d_a[i]+1.0f;
     }
 }
-__global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__restrict__ d_a,const float *__restrict__ d_b,size_t elems_per_pass,int passes, size_t max_elems,float alpha){
+__global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__restrict__ d_a,const float *__restrict__ d_b,size_t elems_per_pass,int passes, size_t max_elems,float alpha, memory_mode_t mode){
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     size_t stride = blockDim.x * gridDim.x;
     for (int p=0;p<passes;p++){
 	    size_t base=(size_t)p*elems_per_pass;
 	    for (size_t i = idx; i < elems_per_pass; i += stride) {
 		    size_t j=base+i;
-		    d_c[j] = alpha*d_a[j] + d_b[j];
+            switch(mode){
+                case MEMORY_MODE_TRIAD:
+                    d_c[j] = d_a[j] + alpha*d_b[j];
+                    break;
+                case MEMORY_MODE_COPY:
+                    d_c[j] = d_a[j];
+                    break;
+                case MEMORY_MODE_SCALE:
+                    d_c[j] = alpha*d_a[j];
+                    break;
+                case MEMORY_MODE_ADD:
+                    d_c[j] = d_a[j] + d_b[j];
+                    break;
+                default:
+                    d_c[j] = d_a[j] + alpha*d_b[j]; 
         }
     
     }
 }
 
-double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const float *d_b,cudaStream_t stream, int grid, int block,size_t elems_per_pass,int passes,size_t max_elems,float alpha,int req_count, MPI_Request *reqs,int do_progress){
+double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const float *d_b,cudaStream_t stream, int grid, int block,size_t elems_per_pass,int passes,size_t max_elems,float alpha,int req_count, MPI_Request *reqs,int do_progress, memory_mode_t mode){
     if(elems_per_pass==0 || passes<=0){
         return 0.0;
     }
@@ -42,7 +57,7 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
     CHECK_CUDA_ERROR(cudaEventCreate(&start));
     CHECK_CUDA_ERROR(cudaEventCreate(&stop));
     CHECK_CUDA_ERROR(cudaEventRecord(start,stream));
-    memory_bound_kernel<<<grid,block,0,stream>>>(d_c,d_a,d_b,elems_per_pass,passes,max_elems,alpha);
+    memory_bound_kernel<<<grid,block,0,stream>>>(d_c,d_a,d_b,elems_per_pass,passes,max_elems,alpha,mode);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
     if(do_progress)
@@ -62,7 +77,7 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
 }
 
 
-gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *d_a,const float *d_b, cudaStream_t stream, int grid, int block, size_t elems_per_pass, size_t max_elems, double target_unit_us){
+gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *d_a,const float *d_b, cudaStream_t stream, int grid, int block, size_t elems_per_pass, size_t max_elems, double target_unit_us, memory_mode_t mode){
     size_t best_elems=max_elems;
 
     int low=1;
@@ -77,13 +92,13 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     double best_time_us=0.0;
 
     for(int i=0;i<5;i++){
-        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,1.0f,0,NULL,0);
+        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,1.0f,0,NULL,0,mode);
     }
 
     for(int iter=0;iter<30 && low<=high;iter++){
         int mid=low+(high-low)/2;
 
-        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,1.0f,0,NULL,0);
+        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,1.0f,0,NULL,0,mode);
 
         if(time_us<=0.0){
             fprintf(stderr,"Invalid memory-bound calibration time\n");
