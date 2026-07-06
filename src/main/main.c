@@ -8,6 +8,7 @@ int main(int argc, char *argv[]){
     long max_bytes=MAX_MESSAGE_SIZE;
     int do_progress=0;
     int compute_bound=1;
+    memory_mode_t memory_mode=MEMORY_MODE_TRIAD;
     
     for(int i=0;i<argc;i++){
         if(strncmp(argv[i],"--dim=",6)==0 ){
@@ -69,6 +70,21 @@ int main(int argc, char *argv[]){
                 return -1;
             }
         }
+        else if(strncmp(argv[i],"--memory-mode=",14)==0){
+            const char* mode_str = argv[i] + 14;
+            if (strcmp(mode_str, "triad") == 0) {
+                memory_mode = MEMORY_MODE_TRIAD;
+            } else if (strcmp(mode_str, "copy") == 0) {
+                memory_mode = MEMORY_MODE_COPY;
+            } else if (strcmp(mode_str, "scale") == 0) {
+                memory_mode = MEMORY_MODE_SCALE;
+            } else if (strcmp(mode_str, "add") == 0) {
+                memory_mode = MEMORY_MODE_ADD;
+            } else {
+                fprintf(stderr, "Invalid memory mode specified. Use 'triad', 'copy', 'scale', or 'add'.\n");
+                return -1;
+            }
+        }
         else if(strncmp(argv[i],"--help",6)==0){
             usage(argv[0]);
             return 0;
@@ -104,7 +120,7 @@ int main(int argc, char *argv[]){
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
     if(dev==0){
-         run_overlap_benchmark(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,compute_bound);
+         run_overlap_benchmark(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,compute_bound,memory_mode);
     }
 
     else if(dev==1){
