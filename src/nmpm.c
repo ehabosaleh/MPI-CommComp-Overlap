@@ -181,7 +181,6 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 		if (!compute_bound) {
 			printf("Memory-bound mode: %s\n", memory_mode == MEMORY_MODE_TRIAD ? "Triad" : memory_mode == MEMORY_MODE_COPY ? "Copy" : memory_mode == MEMORY_MODE_SCALE ? "Scale" : "Add");
 		}
-		printf("With manual progress: %s\n", do_progress ? "Yes" : "No");
 		printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
     }
 
