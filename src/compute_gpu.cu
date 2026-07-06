@@ -48,12 +48,12 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
         return 0.0;
     }
     size_t required_elems=(size_t)passes*elems_per_pass;
-    /*
+    
     if(required_elems>max_elems){
         fprintf(stderr,"Error: required elements (%zu) exceed max_elems (%zu)\n",required_elems,max_elems);
         MPI_Abort(MPI_COMM_WORLD,1);
     }
-    */
+    
     float time_ms=0.0f;
     cudaEvent_t start,stop;
     CHECK_CUDA_ERROR(cudaEventCreate(&start));
