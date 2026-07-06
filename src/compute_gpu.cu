@@ -38,11 +38,11 @@ __global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__rest
                     break;
                 default:
                     d_c[j] = d_a[j] + alpha*d_b[j]; 
-        }
+            }
     
+        }
     }
 }
-
 double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const float *d_b,cudaStream_t stream, int grid, int block,size_t elems_per_pass,int passes,size_t max_elems,float alpha,int req_count, MPI_Request *reqs,int do_progress, memory_mode_t mode){
     if(elems_per_pass==0 || passes<=0){
         return 0.0;
