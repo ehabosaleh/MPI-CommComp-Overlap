@@ -40,6 +40,7 @@ __global__ void compute_bound_kernel(float*d_a, size_t n, int repeat, int inner_
         d_a[i]=x;
     }
 }
+
 void init_vector(size_t n) {
     CHECK_CUDA_ERROR(cudaMallocHost((void**)&h_a,n*sizeof(float)));
     CHECK_CUDA_ERROR(cudaMalloc((void**)&d_a,n*sizeof(float)));
@@ -67,10 +68,15 @@ void free_vector(void){
 
 int main(){
     size_t n=1000000;
+    cudaStream_t stream;
+    CHECK_CUDA_ERROR(cudaStreamCreate(&stream));
+
     init_vector(n);
-    for(int i=0;i<1000;i++){
-        compute_bound_kernel<<<32,TPB_256>>>(d_a,n,10,100);
-    }
+    
+    compute_bound_kernel<<<32,TPB_256,0,stream>>>(d_a,n,100,100);
+    checkCudaErrors(cudaPeekAtLastError());
+    checkCudaErrors(cudaStreamSynchronize(stream));
+    
     free_vector();
     return 0;
 
