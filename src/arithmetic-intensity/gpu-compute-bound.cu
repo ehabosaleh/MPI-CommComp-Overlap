@@ -74,8 +74,8 @@ int main(){
     init_vector(n);
     
     compute_bound_kernel<<<32,TPB_256,0,stream>>>(d_a,n,100,100);
-    checkCudaErrors(cudaPeekAtLastError());
-    checkCudaErrors(cudaStreamSynchronize(stream));
+    CHECK_CUDA_ERROR(cudaPeekAtLastError());
+    CHECK_CUDA_ERROR(cudaStreamSynchronize(stream));
     
     free_vector();
     return 0;
