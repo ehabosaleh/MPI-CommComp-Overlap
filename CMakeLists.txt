@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-#cmake_policy(SET CMP0104 NEW)
+cmake_policy(SET CMP0104 NEW)
 
 project(Neighbor-Overlap-Microbenchmark LANGUAGES C CXX)
 
@@ -39,7 +39,7 @@ if(ENABLE_CUDA)
 	
 	    #set(CMAKE_CUDA_ARCHITECTURES 80)
 
-	    #set(CMAKE_CUDA_ARCHITECTURES 90)
+	    set(CMAKE_CUDA_ARCHITECTURES 90)
         
 
         message(STATUS "CUDA found: ${CUDAToolkit_VERSION}")
