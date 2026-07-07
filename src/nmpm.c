@@ -138,7 +138,7 @@ static void post_sendrecv(int left,int right, int front, int back, int bottom, i
 
 }
 
-int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, long min_bytes,long max_bytes, int compute_bound,memory_mode_t memory_mode){ 
+int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, long min_bytes,long max_bytes, int compute_bound,memory_mode_t memory_mode, int do_progress) { 
 	int iter;
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
     double overlap=0.0;
@@ -209,7 +209,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 				progress_data.num_requests = req_count;
 				progress_data.stop_flag = 0;
 				start_progress_thread(&progress_data);
-				wait_for_progress_thread(&progress_data);
+				wait_progress_thread(&progress_data);
 			}
 			else{
 				MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
@@ -241,7 +241,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
             t_comp = MPI_Wtime()-tcomp_start;
 			
 			if(do_progress){
-				wait_for_progress_thread(&progress_data);
+				wait_progress_thread(&progress_data);
 			}
 			else{
             	MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
@@ -393,7 +393,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 				progress_data.num_requests = req_count;
 				progress_data.stop_flag = 0;
 				start_progress_thread(&progress_data);
-				wait_for_progress_thread(&progress_data);
+				wait_progress_thread(&progress_data);
 			}
 			else{
 				MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
@@ -424,7 +424,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
             t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,req_count,reqs,do_progress,compute_bound,memory_mode);
 			if(do_progress){
-				wait_for_progress_thread(&progress_data);
+				wait_progress_thread(&progress_data);
 			}
 			else{
             	MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
