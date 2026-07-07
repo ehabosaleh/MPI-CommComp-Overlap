@@ -73,7 +73,7 @@ int main(){
 
     init_vector(n);
     
-    compute_bound_kernel<<<32,TPB_256,0,stream>>>(d_a,n,100,100);
+    compute_bound_kernel<<<32,TPB_256,0,stream>>>(d_a,n,100,1000);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaStreamSynchronize(stream));
     
