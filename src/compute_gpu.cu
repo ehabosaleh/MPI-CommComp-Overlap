@@ -16,6 +16,8 @@ __global__ void compute_kernel(float *d_a, size_t n) {
         d_a[i] = d_a[i] * d_a[i]+1.0f;
     }
 }
+
+
 __global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__restrict__ d_a,const float *__restrict__ d_b,size_t elems_per_pass,int passes, size_t max_elems,float alpha, memory_mode_t mode){
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     size_t stride = blockDim.x * gridDim.x;
@@ -23,6 +25,9 @@ __global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__rest
 	    size_t base=(size_t)p*elems_per_pass;
 	    for (size_t i = idx; i < elems_per_pass; i += stride) {
 		    size_t j=base+i;
+            if(j>=max_elems){
+                continue;
+            }
             switch(mode){
                 case MEMORY_MODE_TRIAD:
                     d_c[j] = d_a[j] + alpha*d_b[j];
@@ -43,7 +48,7 @@ __global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__rest
         }
     }
 }
-double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const float *d_b,cudaStream_t stream, int grid, int block,size_t elems_per_pass,int passes,size_t max_elems,float alpha,int req_count, MPI_Request *reqs,int do_progress, memory_mode_t mode){
+double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const float *d_b,cudaStream_t stream, int grid, int block,size_t elems_per_pass,int passes,size_t max_elems,float alpha, memory_mode_t mode){
     if(elems_per_pass==0 || passes<=0){
         return 0.0;
     }
@@ -62,14 +67,6 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
     memory_bound_kernel<<<grid,block,0,stream>>>(d_c,d_a,d_b,elems_per_pass,passes,max_elems,alpha,mode);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
-    if(do_progress)
-        if(req_count>0){
-                int mpi_done=0;
-                while(!mpi_done){
-                    MPI_Testall(req_count,reqs,&mpi_done,MPI_STATUSES_IGNORE);
-                }
-
-        }
     CHECK_CUDA_ERROR(cudaEventSynchronize(stop));
     CHECK_CUDA_ERROR(cudaEventElapsedTime(&time_ms,start,stop));
     
@@ -155,7 +152,7 @@ __global__ void compute_bound_kernel(float*d_a, size_t n, int repeat, int inner_
         d_a[i]=x;
     }
 }
-double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters, int req_count, MPI_Request *reqs, int do_progress){
+double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int repeat,int inner_iters){
     float time_ms=0.0f;
     cudaEvent_t start,stop;
     CHECK_CUDA_ERROR(cudaEventCreate(&start));
@@ -164,14 +161,6 @@ double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid,
     compute_bound_kernel<<<grid,block,0,stream>>>(d_a,n,repeat,inner_iters);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
-    if(do_progress)
-        if(req_count>0){
-                int mpi_done=0;
-                while(!mpi_done){
-                    MPI_Testall(req_count,reqs,&mpi_done,MPI_STATUSES_IGNORE);
-                }
-
-        }
     CHECK_CUDA_ERROR(cudaEventSynchronize(stop));
     CHECK_CUDA_ERROR(cudaEventElapsedTime(&time_ms,start,stop));
     
