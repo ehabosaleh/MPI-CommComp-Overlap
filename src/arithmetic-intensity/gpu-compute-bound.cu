@@ -68,12 +68,26 @@ void free_vector(void){
 
 int main(){
     size_t n=1000000;
+    int device_num=0;
+    int device_count=0;
+
+    CHECK_CUDA_ERROR(cudaGetDeviceCount(&device_count));
+    if(device_count<=0){
+        fprintf(stderr,"No CUDA devices found\n");
+        return 1;
+    }
+	CHECK_CUDA_ERROR(cudaSetDevice(device_num));
+	cudaDeviceProp prop;
+	CHECK_CUDA_ERROR(cudaGetDeviceProperties(&prop,device_num));
+    int grid=prop.multiProcessorCount*4;
+	int block=TPB_256;
+
     cudaStream_t stream;
     CHECK_CUDA_ERROR(cudaStreamCreate(&stream));
 
     init_vector(n);
     
-    compute_bound_kernel<<<32,TPB_256,0,stream>>>(d_a,n,100,1000);
+    compute_bound_kernel<<<grid,block,0,stream>>>(d_a,n,100,1000);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaStreamSynchronize(stream));
     
