@@ -91,13 +91,13 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     double best_time_us=0.0;
 
     for(int i=0;i<5;i++){
-        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,1.0f,0,NULL,0,mode);
+        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,1.0f,mode);
     }
 
     for(int iter=0;iter<30 && low<=high;iter++){
         int mid=low+(high-low)/2;
 
-        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,1.0f,0,NULL,0,mode);
+        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,1.0f,mode);
 
         if(time_us<=0.0){
             fprintf(stderr,"Invalid memory-bound calibration time\n");
@@ -177,13 +177,13 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     double best_unit_us=0.0;
 
     for(int i=0;i<5;i++){
-        measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,calibration_repeat,100,0,NULL,0);
+        measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,calibration_repeat,100);
     }
 
     for (int iter=0;iter<30;iter++){
         int mid=low+(high-low)/2;
 
-        double total_us = measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,calibration_repeat,mid,0,NULL,0);
+        double total_us = measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,calibration_repeat,mid);
 
         double unit_us=total_us/(double)calibration_repeat;
         double error=fabs(unit_us-target_unit_us);
