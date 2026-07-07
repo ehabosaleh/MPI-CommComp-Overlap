@@ -203,8 +203,17 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 			MPI_Barrier(MPI_COMM_WORLD);
             double init_time=MPI_Wtime();
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
-            MPI_Waitall(req_count, reqs, MPI_STATUSES_IGNORE);
-
+            if(do_progress){
+				progress_thread_data_t progress_data;
+				progress_data.requests = reqs;
+				progress_data.num_requests = req_count;
+				progress_data.stop_flag = 0;
+				start_progress_thread(&progress_data);
+				wait_for_progress_thread(&progress_data);
+			}
+			else{
+				MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
+			}
             if(iter>=SKIP) {
                 t_pure_total += MPI_Wtime()-init_time;
             }
@@ -219,13 +228,24 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
             double init_time = MPI_Wtime();
 
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);	
-            double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
+            if(do_progress){
+				progress_thread_data_t progress_data;
+				progress_data.requests = reqs;
+				progress_data.num_requests = req_count;
+				progress_data.stop_flag = 0;
+				start_progress_thread(&progress_data);
+			}
+			double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
             double tcomp_start = MPI_Wtime();
             compute_on_host((targetComputeTime/1e6),compute_bound,memory_mode);
             t_comp = MPI_Wtime()-tcomp_start;
 			
-            MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
-
+			if(do_progress){
+				wait_for_progress_thread(&progress_data);
+			}
+			else{
+            	MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
+			}
             t_ovrl=MPI_Wtime()-init_time;
 
             if(iter>=SKIP){
@@ -367,7 +387,17 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 
 			double init_time=MPI_Wtime();
 			post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);	
-            MPI_Waitall(req_count, reqs, MPI_STATUSES_IGNORE);
+            if(do_progress){
+				progress_thread_data_t progress_data;
+				progress_data.requests = reqs;
+				progress_data.num_requests = req_count;
+				progress_data.stop_flag = 0;
+				start_progress_thread(&progress_data);
+				wait_for_progress_thread(&progress_data);
+			}
+			else{
+				MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
+			}	
 
             if(iter>=SKIP) {
                 t_pure_total += MPI_Wtime()-init_time;
@@ -384,12 +414,21 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 
             double init_time = MPI_Wtime();
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
-            	
+            if(do_progress){
+				progress_thread_data_t progress_data;
+				progress_data.requests = reqs;
+				progress_data.num_requests = req_count;
+				progress_data.stop_flag = 0;
+				start_progress_thread(&progress_data);
+			}
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
             t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,req_count,reqs,do_progress,compute_bound,memory_mode);
-
-            MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
-
+			if(do_progress){
+				wait_for_progress_thread(&progress_data);
+			}
+			else{
+            	MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
+			}
             t_ovrl=MPI_Wtime()-init_time;
 
         	if(iter>=SKIP){
