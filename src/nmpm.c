@@ -422,7 +422,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 				start_progress_thread(&progress_data);
 			}
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
-            t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,req_count,reqs,do_progress,compute_bound,memory_mode);
+            t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,compute_bound,memory_mode);
 			if(do_progress){
 				wait_progress_thread(&progress_data);
 			}
