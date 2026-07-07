@@ -123,8 +123,32 @@ NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode){
 
     host_sink += mb_c[end - 1];
 }
-
-void compute_on_host(double latency_sec,int compute_bound,memory_mode_t memory_mode){
+void * progress_thread_func(void *arg) {
+    progress_thread_data_t *req = (progress_thread_data_t *)arg;
+    while (!req->stop_flag) {
+        MPI_Testall(req->num_requests, req->requests, &req->stop_flag, MPI_STATUSES_IGNORE);
+    }
+    
+    return NULL;
+}
+int start_progress_thread(progress_thread_data_t *progress_data) {
+    progress_data->stop_flag = 0;
+    if (pthread_create(&progress_data->thread, NULL, progress_thread_func, progress_data) != 0) {
+        fprintf(stderr, "Error creating progress thread\n");
+        return -1;
+    }
+    //pthread_detach(progress_data->thread);
+    return 0;
+}
+int wait_progress_thread(progress_thread_data_t *progress_data) {
+    progress_data->stop_flag = 1;
+    if (pthread_join(progress_data->thread, NULL) != 0) {
+        fprintf(stderr, "Error joining progress thread\n");
+        return -1;
+    }
+    return 0;
+}
+void compute_on_host(double latency_sec,int compute_bound,memory_mode_t memory_mode) {
     if(latency_sec<MIN_COMPUTE_SEC)
         latency_sec=MIN_COMPUTE_SEC;
 
@@ -143,6 +167,7 @@ void compute_on_host(double latency_sec,int compute_bound,memory_mode_t memory_m
             if (compute_bound) {
                 cpu_compute_bound_batch();
             } else {
+    
                 cpu_memory_bound_batch(memory_mode);
             }
         }

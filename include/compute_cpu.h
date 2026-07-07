@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include<mpi.h>
-
+#include<pthread.h>
 
 typedef enum {
     MEMORY_MODE_TRIAD,
@@ -11,6 +11,13 @@ typedef enum {
     MEMORY_MODE_SCALE,
     MEMORY_MODE_ADD
 } memory_mode_t;
+
+typedef struct{
+    pthread_t thread;
+    MPI_Request *requests;
+    int num_requests;
+    int stop_flag;
+} progress_thread_data_t;
 
 #if defined(__GNUC__) || defined(__clang__)
 #define NOINLINE __attribute__((noinline))
@@ -52,6 +59,10 @@ void free_memory_bound_buffers(void);
 
 NOINLINE void cpu_compute_bound_batch(void);
 NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode);
+
+void * progress_thread_func(void *arg);
+int start_progress_thread(progress_thread_data_t *progress_data);
+int wait_progress_thread(progress_thread_data_t *progress_data);
 
 //void compute_on_host(double latency, int size_threshold);
 
