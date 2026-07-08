@@ -136,11 +136,11 @@ void * progress_thread_func(void *arg) {
             continue;
         }
 
-        //while (!req->stop_flag) {
-         //   MPI_Testall(req->num_requests, req->requests, &req->stop_flag, MPI_STATUSES_IGNORE);
-        //}
-        //req->stop_flag = 0;
-        MPI_Waitall(req->num_requests, req->requests, MPI_STATUSES_IGNORE);
+        while (!req->stop_flag) {
+            MPI_Testall(req->num_requests, req->requests, &req->stop_flag, MPI_STATUSES_IGNORE);
+        }
+        req->stop_flag = 0;
+        //MPI_Waitall(req->num_requests, req->requests, MPI_STATUSES_IGNORE);
         atomic_store_int(&req->done, 1);
         atomic_store_int(&req->active, 0);
 
@@ -150,7 +150,11 @@ void * progress_thread_func(void *arg) {
 int start_progress_thread(progress_thread_data_t *progress_data) {
     progress_data->requests = NULL;
     progress_data->num_requests = 0;
-
+    if(progres_data->is_gpu) {
+        cudaSetDevice(progress_data->cuda_device);
+    } else {
+        progress_data->cuda_device = -1;
+    }
     atomic_store_int(&progress_data->active, 0);
     atomic_store_int(&progress_data->done, 1);
     atomic_store_int(&progress_data->terminate, 0);
