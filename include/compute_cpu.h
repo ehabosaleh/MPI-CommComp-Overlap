@@ -67,6 +67,8 @@ NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode);
 
 void * progress_thread_func(void *arg);
 int start_progress_thread(progress_thread_data_t *progress_data);
+int post_progress_thread_requests(progress_thread_data_t *progress_data, MPI_Request *requests, int num_requests);
+int terminate_progress_thread(progress_thread_data_t *progress_data);
 int wait_progress_thread(progress_thread_data_t *progress_data);
 
 //void compute_on_host(double latency, int size_threshold);
