@@ -125,9 +125,12 @@ NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode){
 }
 void * progress_thread_func(void *arg) {
     progress_thread_data_t *req = (progress_thread_data_t *)arg;
+    /*
     while (!req->stop_flag) {
         MPI_Testall(req->num_requests, req->requests, &req->stop_flag, MPI_STATUSES_IGNORE);
     }
+    */
+    MPI_Waitall(req->num_requests, req->requests, MPI_STATUSES_IGNORE);
     
     return NULL;
 }
