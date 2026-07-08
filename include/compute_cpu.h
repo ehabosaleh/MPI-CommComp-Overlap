@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include<mpi.h>
 #include<pthread.h>
-#include<stdatomic.h>
+//#include<stdatomic.h>
 
 typedef enum {
     MEMORY_MODE_TRIAD,
@@ -18,12 +18,18 @@ typedef struct{
     MPI_Request *requests;
     int num_requests;
     int stop_flag;
-    atomic_int active;
-    atomic_int done;
-    atomic_int terminate;
+    int active;
+    int done;
+    int terminate;
 
 } progress_thread_data_t;
 
+#define atomic_load_int(ptr) \
+    __atomic_load_n((ptr), __ATOMIC_ACQUIRE)
+
+#define atomic_store_int(ptr, val) \
+    __atomic_store_n((ptr), (val), __ATOMIC_RELEASE)
+    
 #if defined(__GNUC__) || defined(__clang__)
 #define NOINLINE __attribute__((noinline))
 #else
