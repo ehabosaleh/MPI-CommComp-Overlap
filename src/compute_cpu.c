@@ -130,25 +130,59 @@ void * progress_thread_func(void *arg) {
         MPI_Testall(req->num_requests, req->requests, &req->stop_flag, MPI_STATUSES_IGNORE);
     }
     */
-    MPI_Waitall(req->num_requests, req->requests, MPI_STATUSES_IGNORE);
-    
+    while(!atomic_load_explicit(&req->terminate, memory_order_acquire)) {
+        if (!atomic_load_explicit(&req->active, memory_order_acquire)) {
+            sched_yield();
+            continue;
+        }
+        while (!req->stop_flag) {
+            MPI_Testall(req->num_requests, req->requests, &req->stop_flag, MPI_STATUSES_IGNORE);
+        }
+        atomic_store_explicit(&req->done, 1, memory_order_release);
+        atomic_store_explicit(&req->active, 0, memory_order_release);
+
+    }    
     return NULL;
 }
 int start_progress_thread(progress_thread_data_t *progress_data) {
-    progress_data->stop_flag = 0;
-    if (pthread_create(&progress_data->thread, NULL, progress_thread_func, progress_data) != 0) {
+    progress_data->requests = NULL;
+    progress_data->num_requests = 0;
+
+    atomic_store(&progress_data->active, 0);
+    atomic_store(&progress_data->done, 1);
+    atomic_store(&progress_data->terminate, 0);
+
+    int rc = pthread_create(&progress_data->thread,NULL,progress_thread_func,progress_data);
+    if (rc != 0) {
         fprintf(stderr, "Error creating progress thread\n");
         return -1;
     }
-    //pthread_detach(progress_data->thread);
+
+    return 0;
+}
+int post_progress_thread_requests(progress_thread_data_t *progress_data, MPI_Request *requests, int num_requests) {
+    if(atomic_load(&progress_data->active)) {
+        fprintf(stderr, "Progress thread is already active\n");
+        return -1;
+    }
+    progress_data->requests = requests;
+    progress_data->num_requests = num_requests;
+
+    atomic_store(&progress_data->done, 0);
+    atomic_store(&progress_data->active, 1);
+
     return 0;
 }
 int wait_progress_thread(progress_thread_data_t *progress_data) {
-    progress_data->stop_flag = 1;
-    if (pthread_join(progress_data->thread, NULL) != 0) {
-        fprintf(stderr, "Error joining progress thread\n");
-        return -1;
+    while(!atomic_load_explicit(&progress_data->done, memory_order_acquire)) {
+        sched_yield();
     }
+    return 0;
+}
+int terminate_progress_thread(progress_thread_data_t *progress_data) {
+    wait_progress_thread(progress_data);
+    atomic_store(&progress_data->terminate, 1);
+    pthread_join(progress_data->thread, NULL);
     return 0;
 }
 void compute_on_host(double latency_sec,int compute_bound,memory_mode_t memory_mode) {
