@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include<mpi.h>
 #include<pthread.h>
+#include<cuda_runtime.h>
 //#include<stdatomic.h>
 
 typedef enum {
