@@ -135,10 +135,12 @@ void * progress_thread_func(void *arg) {
             sched_yield();
             continue;
         }
-        while (!req->stop_flag) {
-            MPI_Testall(req->num_requests, req->requests, &req->stop_flag, MPI_STATUSES_IGNORE);
-        }
-        req->stop_flag = 0;
+
+        //while (!req->stop_flag) {
+         //   MPI_Testall(req->num_requests, req->requests, &req->stop_flag, MPI_STATUSES_IGNORE);
+        //}
+        //req->stop_flag = 0;
+        MPI_Waitall(req->num_requests, req->requests, MPI_STATUSES_IGNORE);
         atomic_store_int(&req->done, 1);
         atomic_store_int(&req->active, 0);
 
