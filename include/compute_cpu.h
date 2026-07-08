@@ -21,6 +21,8 @@ typedef struct{
     int active;
     int done;
     int terminate;
+    int cuda_device;
+    int is_gpu;
 
 } progress_thread_data_t;
 
@@ -29,7 +31,7 @@ typedef struct{
 
 #define atomic_store_int(ptr, val) \
     __atomic_store_n((ptr), (val), __ATOMIC_RELEASE)
-    
+
 #if defined(__GNUC__) || defined(__clang__)
 #define NOINLINE __attribute__((noinline))
 #else
