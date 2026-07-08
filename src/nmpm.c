@@ -185,6 +185,11 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
     }
 
     MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
+	progress_thread_data_t progress_data;
+	
+	if(do_progress)
+		start_progress_thread(&progress_data);
+
     for (long local_N=min_bytes;local_N <= max_bytes; local_N *= 2) {
 
         char *send_buffers[6];
@@ -199,16 +204,12 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
         	}
         }
         for (iter =0; iter< MAX_ITER; iter++){
-			progress_thread_data_t progress_data;
             int req_count=0;
 			MPI_Barrier(MPI_COMM_WORLD);
             double init_time=MPI_Wtime();
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
             if(do_progress){
-				progress_data.requests = reqs;
-				progress_data.num_requests = req_count;
-				progress_data.stop_flag = 0;
-				start_progress_thread(&progress_data);
+				post_progress_thread_requests(&progress_data, reqs, req_count);
 				wait_progress_thread(&progress_data);
 			}
 			else{
@@ -224,16 +225,12 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 
         for (iter = 0; iter < MAX_ITER; iter++) {
             int req_count = 0;
-			progress_thread_data_t progress_data;
 			MPI_Barrier(MPI_COMM_WORLD);
             double init_time = MPI_Wtime();
 
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);	
             if(do_progress){
-				progress_data.requests = reqs;
-				progress_data.num_requests = req_count;
-				progress_data.stop_flag = 0;
-				start_progress_thread(&progress_data);
+				post_progress_thread_requests(&progress_data, reqs, req_count);
 			}
 			double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
             double tcomp_start = MPI_Wtime();
@@ -278,6 +275,8 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
         	free(recv_buffers[i]);
         }
     }
+	if(do_progress)
+		terminate_progress_thread(&progress_data);
     free(reqs);
 	return 0;
 }
@@ -370,6 +369,10 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
         	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Kernel(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
     }
 	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
+	progress_thread_data_t progress_data;
+	if(do_progress)
+		start_progress_thread(&progress_data);
+
     for (long local_N=min_bytes;local_N <= max_bytes; local_N *= 2){
         char *send_buffers[6];
         char *recv_buffers[6];
@@ -381,7 +384,6 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 			CHECK_CUDA_ERROR(cudaMemset(recv_buffers[i],0,local_N));
         }
 		for( iter=0;iter<MAX_ITER;iter++){
-			progress_thread_data_t progress_data;
 			cudaDeviceSynchronize();
 			MPI_Barrier(MPI_COMM_WORLD);
 			int req_count=0;
@@ -389,10 +391,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 			double init_time=MPI_Wtime();
 			post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);	
             if(do_progress){
-				progress_data.requests = reqs;
-				progress_data.num_requests = req_count;
-				progress_data.stop_flag = 0;
-				start_progress_thread(&progress_data);
+				post_progress_thread_requests(&progress_data, reqs, req_count);
 				wait_progress_thread(&progress_data);
 			}
 			else{
@@ -408,7 +407,6 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 		MPI_Allreduce(&t_pure_total, &t_pure_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 			
 		for (iter = 0; iter < MAX_ITER; iter++) {
-			progress_thread_data_t progress_data;
 			cudaDeviceSynchronize();
             int req_count=0;
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -416,10 +414,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             double init_time = MPI_Wtime();
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
             if(do_progress){
-				progress_data.requests = reqs;
-				progress_data.num_requests = req_count;
-				progress_data.stop_flag = 0;
-				start_progress_thread(&progress_data);
+				post_progress_thread_requests(&progress_data, reqs, req_count);
 			}
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
             t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,compute_bound,memory_mode);
@@ -462,6 +457,9 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
         }
 	}
 	CHECK_CUDA_ERROR(cudaStreamDestroy(stream));
+	if(do_progress)
+		terminate_progress_thread(&progress_data);
+
     free(reqs);
 	free_vector();
 	return 0;
