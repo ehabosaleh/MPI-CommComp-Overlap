@@ -6,7 +6,7 @@ void usage(char *prog_name) {
 	fprintf(stderr, "--ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
 	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n");
 	fprintf(stderr,"--with-progress: 1 to progress communication manually or 0 to rely on internal MPI progress\n");
-	fprintf(stderr,"--progress-thread: 1 to use a dedicated progress thread, 0 to use manual testing of pending requests (Only with GPU) x");
+	fprintf(stderr,"--progress-thread: 1 to use a dedicated progress thread, 0 to use manual testing of pending requests (Only with GPU) ");
 	fprintf(stderr,"--min-bytes: Desired minimum number of bytes\n");
 	fprintf(stderr,"--max-bytes: Desired maximum number of bytes\n");
 	fprintf(stderr,"--compute-bound: Flag to indicate compute-bound benchmark\n");
@@ -377,8 +377,6 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	}
 	else
 		progress_data.is_thread=0;
-
-	}
 
     for (long local_N=min_bytes;local_N <= max_bytes; local_N *= 2){
         char *send_buffers[6];
