@@ -67,7 +67,7 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
     memory_bound_kernel<<<grid,block,0,stream>>>(d_c,d_a,d_b,elems_per_pass,passes,max_elems,alpha,mode);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
-    if(!progress_data->is_thread){
+    if(progress_data!=NULL&&!progress_data->is_thread){
         int req_flag=0;
         while(!req_flag){
             MPI_Testall(progress_data->num_requests,progress_data->requests,&req_flag,MPI_STATUS_IGNORE);
