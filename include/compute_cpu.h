@@ -7,6 +7,8 @@
 #include<cuda_runtime.h>
 //#include<stdatomic.h>
 
+typedef void (*host_work_fn_t)(void);
+
 typedef enum {
     MEMORY_MODE_TRIAD,
     MEMORY_MODE_COPY,
