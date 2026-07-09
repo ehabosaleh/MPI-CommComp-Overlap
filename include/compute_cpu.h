@@ -24,6 +24,7 @@ typedef struct{
     int terminate;
     int cuda_device;
     int is_gpu;
+    int is_thread;
 
 } progress_thread_data_t;
 
