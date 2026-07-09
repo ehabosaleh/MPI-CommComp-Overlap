@@ -1,6 +1,6 @@
 #include<stdlib.h>
 #include<stdio.h>
-
+#include<string.h>
 typedef enum {
     MEMORY_MODE_TRIAD=0,
     MEMORY_MODE_COPY=1,
