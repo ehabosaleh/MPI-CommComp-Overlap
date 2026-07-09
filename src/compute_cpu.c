@@ -77,7 +77,7 @@ NOINLINE void cpu_compute_bound_batch(void){
 
     host_sink+=r0+r1+r2+r3+r4+r5+r6+r7;
 }
-NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode){
+NOINLINE void cpu_memory_bound_triad(){
     if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
         fprintf(stderr, "Memory-bound buffers are not initialized.\n");
         return;
@@ -93,36 +93,92 @@ NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode){
 
     size_t start = mb_offset;
     size_t end   = mb_offset + chunk;
-    switch (memory_mode) {
-        case MEMORY_MODE_TRIAD:
-            for (size_t i = start; i < end; i++) {
+
+    for (size_t i = start; i < end; i++) {
                 mb_c[i] = mb_a[i] + A * mb_b[i];
-            }
-            break;
-        case MEMORY_MODE_COPY:
-            for (size_t i = start; i < end; i++) {
-                mb_c[i] = mb_a[i];
-            }
-            break;
-        case MEMORY_MODE_SCALE:
-            for (size_t i = start; i < end; i++) {
-                mb_c[i] = A * mb_a[i];
-            }
-            break;
-        case MEMORY_MODE_ADD:
-            for (size_t i = start; i < end; i++) {
-                mb_c[i] = mb_a[i] + mb_b[i];
-            }
-            break;
-        default:
-            fprintf(stderr, "Invalid memory mode specified.\n");
-            return;
     }
 
     mb_offset += chunk;
 
     host_sink += mb_c[end - 1];
 }
+
+NOINLINE void cpu_memory_bound_copy(){
+    if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
+        fprintf(stderr, "Memory-bound buffers are not initialized.\n");
+        return;
+    }
+
+    size_t chunk = MEMORY_CHUNK_ELEMS;
+
+    if (chunk > mb_elems)
+        chunk = mb_elems;
+
+    if (mb_offset + chunk > mb_elems)
+        mb_offset = 0;
+
+    size_t start = mb_offset;
+    size_t end   = mb_offset + chunk;
+    for (size_t i = start; i < end; i++) {
+        mb_c[i] = mb_a[i];
+    }
+    
+    mb_offset += chunk;
+
+    host_sink += mb_c[end - 1];
+}
+
+NOINLINE void cpu_memory_bound_scale(){
+    if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
+        fprintf(stderr, "Memory-bound buffers are not initialized.\n");
+        return;
+    }
+
+    size_t chunk = MEMORY_CHUNK_ELEMS;
+
+    if (chunk > mb_elems)
+        chunk = mb_elems;
+
+    if (mb_offset + chunk > mb_elems)
+        mb_offset = 0;
+
+    size_t start = mb_offset;
+    size_t end   = mb_offset + chunk;
+    for (size_t i = start; i < end; i++) {
+        mb_c[i] = A * mb_a[i];
+    }
+
+
+    mb_offset += chunk;
+
+    host_sink += mb_c[end - 1];
+}
+
+NOINLINE void cpu_memory_bound_add(){
+    if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
+        fprintf(stderr, "Memory-bound buffers are not initialized.\n");
+        return;
+    }
+
+    size_t chunk = MEMORY_CHUNK_ELEMS;
+
+    if (chunk > mb_elems)
+        chunk = mb_elems;
+
+    if (mb_offset + chunk > mb_elems)
+        mb_offset = 0;
+
+    size_t start = mb_offset;
+    size_t end   = mb_offset + chunk;
+    for (size_t i = start; i < end; i++) {
+        mb_c[i] = mb_a[i] + mb_b[i];
+    }
+
+    mb_offset += chunk;
+
+    host_sink += mb_c[end - 1];
+}
+
 void * progress_thread_func(void *arg) {
     progress_thread_data_t *req = (progress_thread_data_t *)arg;
     /*
@@ -193,28 +249,53 @@ int terminate_progress_thread(progress_thread_data_t *progress_data) {
     pthread_join(progress_data->thread, NULL);
     return 0;
 }
-void compute_on_host(double latency_sec,int compute_bound,memory_mode_t memory_mode) {
-    if(latency_sec<MIN_COMPUTE_SEC)
-        latency_sec=MIN_COMPUTE_SEC;
 
-    double start=MPI_Wtime();
-    double now=start;
+
+void compute_on_host(double latency_sec, int compute_bound, memory_mode_t memory_mode){
+    if (latency_sec < MIN_COMPUTE_SEC)
+        latency_sec = MIN_COMPUTE_SEC;
+
+    host_work_fn_t work = NULL;
+
+    if (compute_bound) {
+        work=cpu_compute_bound_batch;
+    } else {
+        switch (memory_mode) {
+            case MEMORY_MODE_TRIAD:
+                work=cpu_memory_bound_triad;
+                break;
+
+            case MEMORY_MODE_COPY:
+                work=cpu_memory_bound_copy;
+                break;
+
+            case MEMORY_MODE_ADD:
+                work=cpu_memory_bound_add;
+                break;
+
+            case MEMORY_MODE_SCALE:
+                work=cpu_memory_bound_scale;
+                break;
+
+            default:
+                fprintf(stderr, "Invalid memory mode in compute_on_host\n");
+                return;
+        }
+    }
 
     int check_interval;
 
-    if(latency_sec <= 10.0e-6)
-        check_interval = TIME_CHECK_INTERVAL_SHORT;
+    if (latency_sec <= 10.0e-6)
+        check_interval=TIME_CHECK_INTERVAL_SHORT;
     else
-        check_interval = TIME_CHECK_INTERVAL_LONG;
+        check_interval=TIME_CHECK_INTERVAL_LONG;
 
-    do{
+    double start=MPI_Wtime();
+    double now;
+
+    do {
         for (int r = 0; r < check_interval; r++) {
-            if (compute_bound) {
-                cpu_compute_bound_batch();
-            } else {
-    
-                cpu_memory_bound_batch(memory_mode);
-            }
+            work();
         }
 
         now = MPI_Wtime();
