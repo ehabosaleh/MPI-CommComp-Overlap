@@ -14,7 +14,7 @@ typedef enum {
 #define NOINLINE
 #endif
 
-#define MEMORY_CHUNK_ELEMS 1024
+#define MEMORY_CHUNK_ELEMS 1024*1024
 #define TIME_CHECK_INTERVAL_SHORT 1
 #define TIME_CHECK_INTERVAL_LONG 32
 #define A 2.0
@@ -62,7 +62,7 @@ void free_memory_bound_buffers(void){
     mb_elems = 0;
 }
 
-NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode){
+NOINLINE void cpu_memory_bound_triad(){
     if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
         fprintf(stderr, "Memory-bound buffers are not initialized.\n");
         return;
@@ -78,30 +78,87 @@ NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode){
 
     size_t start = mb_offset;
     size_t end   = mb_offset + chunk;
-    switch (memory_mode) {
-        case MEMORY_MODE_TRIAD:
-            for (size_t i = start; i < end; i++) {
-                mb_c[i] = mb_a[i] + A * mb_b[i];
-            }
-            break;
-        case MEMORY_MODE_COPY:
-            for (size_t i = start; i < end; i++) {
-                mb_c[i] = mb_a[i];
-            }
-            break;
-        case MEMORY_MODE_SCALE:
-            for (size_t i = start; i < end; i++) {
-                mb_c[i] = A * mb_a[i];
-            }
-            break;
-        case MEMORY_MODE_ADD:
-            for (size_t i = start; i < end; i++) {
+    
+   for (size_t i = start; i < end; i++) {
+                mb_c[i] = A*mb_a[i] + mb_b[i];
+    }
+
+    mb_offset += chunk;
+
+    host_sink += mb_c[end - 1];
+}
+
+NOINLINE void cpu_memory_bound_add(){
+    if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
+        fprintf(stderr, "Memory-bound buffers are not initialized.\n");
+        return;
+    }
+
+    size_t chunk = MEMORY_CHUNK_ELEMS;
+
+    if (chunk > mb_elems)
+        chunk = mb_elems;
+
+    if (mb_offset + chunk > mb_elems)
+        mb_offset = 0;
+
+    size_t start = mb_offset;
+    size_t end   = mb_offset + chunk;
+    
+   for (size_t i = start; i < end; i++) {
                 mb_c[i] = mb_a[i] + mb_b[i];
-            }
-            break;
-        default:
-            fprintf(stderr, "Invalid memory mode specified.\n");
-            return;
+    }
+
+    mb_offset += chunk;
+
+    host_sink += mb_c[end - 1];
+}
+
+NOINLINE void cpu_memory_bound_copy(){
+    if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
+        fprintf(stderr, "Memory-bound buffers are not initialized.\n");
+        return;
+    }
+
+    size_t chunk = MEMORY_CHUNK_ELEMS;
+
+    if (chunk > mb_elems)
+        chunk = mb_elems;
+
+    if (mb_offset + chunk > mb_elems)
+        mb_offset = 0;
+
+    size_t start = mb_offset;
+    size_t end   = mb_offset + chunk;
+    
+   for (size_t i = start; i < end; i++) {
+                mb_c[i] = mb_a[i];
+    }
+
+    mb_offset += chunk;
+
+    host_sink += mb_c[end - 1];
+}
+
+NOINLINE void cpu_memory_bound_scale(){
+    if (mb_a == NULL || mb_b == NULL || mb_c == NULL || mb_elems == 0) {
+        fprintf(stderr, "Memory-bound buffers are not initialized.\n");
+        return;
+    }
+
+    size_t chunk = MEMORY_CHUNK_ELEMS;
+
+    if (chunk > mb_elems)
+        chunk = mb_elems;
+
+    if (mb_offset + chunk > mb_elems)
+        mb_offset = 0;
+
+    size_t start = mb_offset;
+    size_t end   = mb_offset + chunk;
+    
+   for (size_t i = start; i < end; i++) {
+                mb_c[i] = A * mb_a[i];
     }
 
     mb_offset += chunk;
@@ -126,9 +183,27 @@ int main(int argc,char**argv){
     }   
 
 	init_memory_bound_buffers(256UL*1024UL*1024UL);
-	
-	for(int i=0;i<1000000;i++)
-		cpu_memory_bound_batch(mode);
+	switch(mode){
+        case MEMORY_MODE_TRIAD:
+            for(int i=0;i<1000000;i++)
+		            cpu_memory_bound_triad();
+            break;
+        case MEMORY_MODE_ADD:
+            for(int i=0;i<1000000;i++)
+		        cpu_memory_bound_add();
+            break;
+        case MEMORY_MODE_SCALE:
+            for(int i=0;i<1000000;i++)
+		        cpu_memory_bound_scale();
+        case MEMORY_MODE_COPY:
+            for(int i=0;i<1000000;i++)
+		            cpu_memory_bound_copy();
+        default:
+                fprintf(stderr, "Invalid memory mode specified.\n");
+                return;
+
+    }
+
         
 	free_memory_bound_buffers();
 
