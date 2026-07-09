@@ -73,7 +73,10 @@ int init_memory_bound_buffers(size_t bytes);
 void free_memory_bound_buffers(void);
 
 NOINLINE void cpu_compute_bound_batch(void);
-NOINLINE void cpu_memory_bound_batch(memory_mode_t memory_mode);
+NOINLINE void cpu_memory_bound_triad();
+NOINLINE void cpu_memory_bound_copy();
+NOINLINE void cpu_memory_bound_add();
+NOINLINE void cpu_memory_bound_scale();
 
 void * progress_thread_func(void *arg);
 int start_progress_thread(progress_thread_data_t *progress_data);
