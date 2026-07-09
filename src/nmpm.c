@@ -5,7 +5,8 @@ void usage(char *prog_name) {
 	fprintf(stderr, "--dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n");
 	fprintf(stderr, "--ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
 	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n");
-	fprintf(stderr,"--with-progress: 1 to apply MPI_Testall to pending communication requests or 0 to rely on internal MPI progress\n");
+	fprintf(stderr,"--with-progress: 1 to progress communication manually or 0 to rely on internal MPI progress\n");
+	fprintf(stderr,"--progress-thread: 1 to use a dedicated progress thread, 0 to use manual testing of pending requests (Only with GPU)  ")
 	fprintf(stderr,"--min-bytes: Desired minimum number of bytes\n");
 	fprintf(stderr,"--max-bytes: Desired maximum number of bytes\n");
 	fprintf(stderr,"--compute-bound: Flag to indicate compute-bound benchmark\n");
@@ -283,7 +284,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 
 #if HAVE_CUDA
 
-int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress,int compute_bound, memory_mode_t memory_mode) {
+int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress, int enable_thread, int compute_bound, memory_mode_t memory_mode) {
 	int iter;
 	int gpu_inner_iters;
 	
@@ -370,11 +371,13 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
     }
 	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
 	progress_thread_data_t progress_data;
-	if(do_progress){
-		progress_data.cuda_device=local_rank;
-		progress_data.is_gpu=1;
-		start_progress_thread(&progress_data);
-	
+	if(do_progress&&enable_thread){
+			start_progress_thread(&progress_data);
+			progress_data.is_thread=1;
+	}
+	else
+		progress_data.is_thread=0;
+
 	}
 
     for (long local_N=min_bytes;local_N <= max_bytes; local_N *= 2){
@@ -394,7 +397,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 
 			double init_time=MPI_Wtime();
 			post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);	
-            if(do_progress){
+            if(do_progress&&enable_thread){
 				post_progress_thread_requests(&progress_data, reqs, req_count);
 				wait_progress_thread(&progress_data);
 			}
@@ -417,12 +420,16 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 
             double init_time = MPI_Wtime();
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
-            if(do_progress){
+            if(do_progress&&enable_thread){
 				post_progress_thread_requests(&progress_data, reqs, req_count);
 			}
+			else{
+				progress_data.requests = requests;
+    			progress_data.num_requests = num_requests;
+			}
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
-            t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,compute_bound,memory_mode);
-			if(do_progress){
+            t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,compute_bound,memory_mode,&progress_data);
+			if(do_progress&&enable_thread){
 				wait_progress_thread(&progress_data);
 			}
 			else{
@@ -461,7 +468,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
         }
 	}
 	CHECK_CUDA_ERROR(cudaStreamDestroy(stream));
-	if(do_progress)
+	if(do_progress&&enable_thread)
 		terminate_progress_thread(&progress_data);
 
     free(reqs);
