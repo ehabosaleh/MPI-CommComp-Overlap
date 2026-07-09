@@ -7,6 +7,7 @@ int main(int argc, char *argv[]){
     long min_bytes=MIN_MESSAGE_SIZE;
     long max_bytes=MAX_MESSAGE_SIZE;
     int do_progress=0;
+    int enable_thread=0;
     int compute_bound=1;
     memory_mode_t memory_mode=MEMORY_MODE_TRIAD;
     
@@ -85,6 +86,12 @@ int main(int argc, char *argv[]){
                 return -1;
             }
         }
+        else if(strncmp(argv[i],"--progress-thread=",18)){
+                enable_thread=atoi(argv[i]+18);
+                if(enable_thread<0){
+                    fprintf(stderr, "Invalid progress-thread flag specified. Use 0 for using thread for progressing or 1 for manual progress.\n");
+                }
+        }
         else if(strncmp(argv[i],"--help",6)==0){
             usage(argv[0]);
             return 0;
@@ -137,7 +144,7 @@ int main(int argc, char *argv[]){
 
     else if(dev==1){
 	#if HAVE_CUDA    
-        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,do_progress,compute_bound,memory_mode);
+        run_overlap_benchmark_gpu(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,do_progress,enable_thread,compute_bound,memory_mode);
 
 	#else
 	fprintf(stderr, "GPU mode requested, but this binary was built without CUDA support.\n");
