@@ -372,9 +372,9 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
 	progress_thread_data_t progress_data;
 	if(do_progress&&enable_thread){
-			start_progress_thread(&progress_data);
 			progress_data.is_thread=1;
 			progress_data.cuda_device=local_rank%device_count;
+			start_progress_thread(&progress_data);
 	}
 	else
 		progress_data.is_thread=0;
