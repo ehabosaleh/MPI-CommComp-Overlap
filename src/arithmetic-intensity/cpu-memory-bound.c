@@ -18,7 +18,7 @@ typedef enum {
 #define TIME_CHECK_INTERVAL_SHORT 1
 #define TIME_CHECK_INTERVAL_LONG 32
 #define A 2.0
-
+#define ITERS 1000
 volatile double host_sink=0.0;
 
 static size_t mb_offset=0;
@@ -185,26 +185,27 @@ int main(int argc,char**argv){
 	init_memory_bound_buffers(256UL*1024UL*1024UL);
 	switch(mode){
         case MEMORY_MODE_TRIAD:
-            for(int i=0;i<1000000;i++)
+            for(int i=0;i<ITERS;i++)
 		            cpu_memory_bound_triad();
             break;
         case MEMORY_MODE_ADD:
-            for(int i=0;i<1000000;i++)
+            for(int i=0;i<ITERS;i++)
 		        cpu_memory_bound_add();
             break;
         case MEMORY_MODE_SCALE:
-            for(int i=0;i<1000000;i++)
+            for(int i=0;i<ITERS;i++)
 		        cpu_memory_bound_scale();
         case MEMORY_MODE_COPY:
-            for(int i=0;i<1000000;i++)
+            for(int i=0;i<ITERS;i++)
 		            cpu_memory_bound_copy();
         default:
                 fprintf(stderr, "Invalid memory mode specified.\n");
-                return;
+                return 1;
 
     }
 
         
 	free_memory_bound_buffers();
+    return 0;
 
 }
