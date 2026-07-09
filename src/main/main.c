@@ -86,10 +86,11 @@ int main(int argc, char *argv[]){
                 return -1;
             }
         }
-        else if(strncmp(argv[i],"--progress-thread=",18)){
+        else if(strncmp(argv[i],"--progress-thread=",18)==0){
                 enable_thread=atoi(argv[i]+18);
                 if(enable_thread<0){
                     fprintf(stderr, "Invalid progress-thread flag specified. Use 0 for using thread for progressing or 1 for manual progress.\n");
+                    return 0;
                 }
         }
         else if(strncmp(argv[i],"--help",6)==0){
