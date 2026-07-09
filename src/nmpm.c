@@ -422,8 +422,8 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 				post_progress_thread_requests(&progress_data, reqs, req_count);
 			}
 			else{
-				progress_data.requests = requests;
-    			progress_data.num_requests = num_requests;
+				progress_data.requests = reqs;
+    			progress_data.num_requests = req_count;
 			}
             double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
             t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,compute_bound,memory_mode,&progress_data);
