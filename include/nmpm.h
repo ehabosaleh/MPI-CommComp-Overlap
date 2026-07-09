@@ -15,7 +15,7 @@ extern "C" {
 
 #if HAVE_CUDA
 #include"compute_gpu.cuh"
-int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes,long max_bytes, int do_progress, int compute_bound, memory_mode_t memory_mode);
+int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes,long max_bytes, int do_progress, int enable_thread, int compute_bound, memory_mode_t memory_mode);
 #endif
 
 
