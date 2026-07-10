@@ -76,7 +76,6 @@ extern volatile double host_sink;
 
 int init_memory_bound_buffers(size_t bytes);
 void free_memory_bound_buffers(void);
-double flush_copy_chunk(size_t start, size_t end);
 
 __attribute__((always_inline)) static inline double now_sec(void){
      struct timespec ts;
