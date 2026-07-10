@@ -208,7 +208,7 @@ int start_progress_thread(progress_thread_data_t *progress_data) {
     progress_data->num_requests = 0;
     if(progress_data->is_gpu) {
         printf("Cuda device was set for dev %d\n",progress_data->cuda_device);
-        cudaSetDevice(progress_data->cuda_device);
+        //cudaSetDevice(progress_data->cuda_device);
     } else {
         progress_data->cuda_device = -1;
     }
