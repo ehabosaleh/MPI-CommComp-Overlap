@@ -8,7 +8,7 @@
 #if HAVE_CUDA 
     #include<cuda_runtime.h>
 #endif
-#include<immintrin.h>
+//#include<immintrin.h>
 
 typedef void (*host_work_fn_t)(void);
 
