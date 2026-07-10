@@ -294,7 +294,7 @@ void compute_on_host(double latency_sec, int compute_bound, memory_mode_t memory
     double now;
 
     do {
-        for (int r = 0; r < check_interval; r++) {
+        for (int r=0;r<check_interval; r++) {
             work();
         }
 
