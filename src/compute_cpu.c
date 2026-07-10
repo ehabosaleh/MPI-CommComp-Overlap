@@ -14,7 +14,7 @@ volatile double host_sink=0.0;
 
 static size_t mb_offset=0;
 
-double inline flush_copy_chunk(size_t start, size_t end){
+double  flush_copy_chunk(size_t start, size_t end){
     double start_t=now_sec();
     const size_t elems_per_line=64/sizeof(double);
     for (size_t i=start;i<end;i += elems_per_line) {
