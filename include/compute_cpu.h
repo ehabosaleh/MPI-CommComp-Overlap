@@ -45,7 +45,7 @@ typedef struct{
 #define COMPUTE_INNER_ITERS 128
 #define TIME_CHECK_INTERVAL_SHORT 1
 #define TIME_CHECK_INTERVAL_LONG 32
-#define MEMORY_CHUNK_ELEMS 1024
+#define MEMORY_CHUNK_ELEMS 1024*1024
 
 #ifdef __cplusplus
 #define RESTRICT __restrict__
