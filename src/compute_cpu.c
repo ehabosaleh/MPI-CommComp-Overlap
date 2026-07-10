@@ -83,7 +83,7 @@ NOINLINE void cpu_memory_bound_triad(){
         return;
     }
 
-    size_t chunk = MEMORY_CHUNK_ELEMS;
+    size_t chunk=MEMORY_CHUNK_ELEMS;
 
     if (chunk > mb_elems)
         chunk = mb_elems;
@@ -207,8 +207,9 @@ int start_progress_thread(progress_thread_data_t *progress_data) {
     progress_data->requests = NULL;
     progress_data->num_requests = 0;
     if(progress_data->is_gpu) {
-        printf("Cuda device was set for dev %d\n",progress_data->cuda_device);
-        //cudaSetDevice(progress_data->cuda_device);
+        #if HAVE_CUDA 
+        cudaSetDevice(progress_data->cuda_device);
+        #endif
     } else {
         progress_data->cuda_device = -1;
     }
@@ -292,7 +293,10 @@ void compute_on_host(double latency_sec, int compute_bound, memory_mode_t memory
 
     double start=MPI_Wtime();
     double now;
-
+    for (size_t i = start; i < end; i += 64 / sizeof(double)) {
+            _mm_clflushopt(&mb_a[i]);
+            _mm_clflushopt(&mb_c[i]);
+    }
     do {
         for (int r=0;r<check_interval; r++) {
             work();
