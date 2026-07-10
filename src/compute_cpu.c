@@ -9,11 +9,23 @@ double *mb_a=NULL;
 double *mb_b=NULL;
 double *mb_c=NULL;
 size_t mb_elems=0;
-
+static double flush_cacheline_t=0.0;
 volatile double host_sink=0.0;
 
 static size_t mb_offset=0;
 
+double inline flush_copy_chunk(size_t start, size_t end){
+    double start_t=now_sec();
+    const size_t elems_per_line=64/sizeof(double);
+    for (size_t i=start;i<end;i += elems_per_line) {
+        _mm_clflushopt(&mb_a[i]);
+        _mm_clflushopt(&mb_b[i]);
+        _mm_clflushopt(&mb_c[i]);
+    }
+     _mm_sfence();
+     double end_t=now_sec();
+     return (end_t-start_t);
+}
 int init_memory_bound_buffers(size_t bytes){
 		
 	mb_elems=bytes/sizeof(double);
@@ -93,6 +105,8 @@ NOINLINE void cpu_memory_bound_triad(){
 
     size_t start = mb_offset;
     size_t end   = mb_offset + chunk;
+    
+    flush_cacheline_t+=flush_copy_chunk(start,end);
 
     for (size_t i = start; i < end; i++) {
                 mb_c[i] = mb_a[i] + A * mb_b[i];
@@ -119,6 +133,8 @@ NOINLINE void cpu_memory_bound_copy(){
 
     size_t start = mb_offset;
     size_t end   = mb_offset + chunk;
+    flush_cacheline_t+=flush_copy_chunk(start,end);
+
     for (size_t i = start; i < end; i++) {
         mb_c[i] = mb_a[i];
     }
@@ -144,6 +160,7 @@ NOINLINE void cpu_memory_bound_scale(){
 
     size_t start = mb_offset;
     size_t end   = mb_offset + chunk;
+    flush_cacheline_t+=flush_copy_chunk(start,end);
     for (size_t i = start; i < end; i++) {
         mb_c[i] = A * mb_a[i];
     }
@@ -170,6 +187,8 @@ NOINLINE void cpu_memory_bound_add(){
 
     size_t start = mb_offset;
     size_t end   = mb_offset + chunk;
+    flush_cacheline_t+=flush_copy_chunk(start,end);
+
     for (size_t i = start; i < end; i++) {
         mb_c[i] = mb_a[i] + mb_b[i];
     }
@@ -291,18 +310,16 @@ void compute_on_host(double latency_sec, int compute_bound, memory_mode_t memory
     else
         check_interval=TIME_CHECK_INTERVAL_LONG;
 
+    fluch_cache_line_t=0;
     double start=MPI_Wtime();
     double now;
-    for (size_t i = start; i < end; i += 64 / sizeof(double)) {
-            _mm_clflushopt(&mb_a[i]);
-            _mm_clflushopt(&mb_c[i]);
-    }
     do {
+
         for (int r=0;r<check_interval; r++) {
             work();
         }
 
         now = MPI_Wtime();
 
-    } while ((now - start) < latency_sec);
+    } while ((now - start-fluch_cacheline_t) < latency_sec);
 }
