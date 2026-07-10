@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include<mpi.h>
 #include<pthread.h>
-//#include<cuda_runtime.h>
-
+#if HAVE_CUDA 
+    #include<cuda_runtime.h>
+#endif
 typedef void (*host_work_fn_t)(void);
 
 typedef enum {
