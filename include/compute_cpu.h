@@ -44,7 +44,7 @@ typedef struct{
 #define MIN_COMPUTE_SEC 1.0e-6
 #define COMPUTE_INNER_ITERS 128
 #define TIME_CHECK_INTERVAL_SHORT 1
-#define TIME_CHECK_INTERVAL_LONG 1
+#define TIME_CHECK_INTERVAL_LONG 2
 #define MEMORY_CHUNK_ELEMS 1024*1024
 
 #ifdef __cplusplus
