@@ -2,11 +2,14 @@
 #define COMPUTE_CPU_H
 #include <stdio.h>
 #include <stdlib.h>
+#include<time.h>
 #include<mpi.h>
 #include<pthread.h>
 #if HAVE_CUDA 
     #include<cuda_runtime.h>
 #endif
+#include<immintrin.h>
+
 typedef void (*host_work_fn_t)(void);
 
 typedef enum {
@@ -73,6 +76,16 @@ extern volatile double host_sink;
 
 int init_memory_bound_buffers(size_t bytes);
 void free_memory_bound_buffers(void);
+int flush_copy_chunk(int start, int end);
+
+__attribute__((always_inline)) static inline double now_sec(void){
+     struct timespec ts;
+     if(clock_gettime(CLOCK_MONOTONIC,&ts)!=0){
+         perror("Error: clock_gettime");
+         exit(EXIT_FAILURE);
+     }
+     return (double)ts.tv_sec+(double)ts.tv_nsec*1e-9;
+ }
 
 NOINLINE void cpu_compute_bound_batch(void);
 NOINLINE void cpu_memory_bound_triad();
