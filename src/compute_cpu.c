@@ -310,7 +310,7 @@ void compute_on_host(double latency_sec, int compute_bound, memory_mode_t memory
     else
         check_interval=TIME_CHECK_INTERVAL_LONG;
 
-    fluch_cache_line_t=0;
+    flush_cache_line_t=0;
     double start=MPI_Wtime();
     double now;
     do {
@@ -321,5 +321,5 @@ void compute_on_host(double latency_sec, int compute_bound, memory_mode_t memory
 
         now = MPI_Wtime();
 
-    } while ((now - start-fluch_cacheline_t) < latency_sec);
+    } while ((now - start-flush_cacheline_t) < latency_sec);
 }
