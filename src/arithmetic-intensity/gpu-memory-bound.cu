@@ -63,10 +63,21 @@ void free_vector(void){
 __global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__restrict__ d_a,const float *__restrict__ d_b,size_t elems_per_pass,int passes, size_t max_elems,float alpha, memory_mode_t mode){
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     size_t stride = blockDim.x * gridDim.x;
+    if(elems_per_pass==0)
+        return;
+    const size_t num_chunks = max_elems/elems_per_pass;
+    if (num_chunks == 0) {
+        return;
+    }
+
     for (int p=0;p<passes;p++){
-	    size_t base=(size_t)p*elems_per_pass;
+        const size_t chunk=(size_t)p%num_chunks;
+	    size_t base=(size_t)chunk*elems_per_pass;
+        
+
 	    for (size_t i = idx; i < elems_per_pass; i += stride) {
 		    size_t j=base+i;
+
             switch(mode){
                 case MEMORY_MODE_TRIAD:
                     d_c[j] = d_a[j] + alpha*d_b[j];
