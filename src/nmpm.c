@@ -287,7 +287,10 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, long min_bytes, long max_bytes,int do_progress, int enable_thread, int compute_bound, memory_mode_t memory_mode) {
 	int iter;
 	int gpu_inner_iters;
-	
+	int hostname_len;
+	char hostname[MPI_MAX_PROCESSOR_NAME];
+	MPI_Get_processor_name(hostname, &hostname_len);
+
 	gpu_memory_calibration_t mem_cal={0,0,0,0};
 	size_t elems_per_pass = ELEMS_PER_PASS;
 	size_t max_elems = VECTOR_DIM_MEM;
@@ -318,7 +321,21 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	int block=TPB_256;
 	
 	init_vector(N);
-	
+
+	int device=local_rank%device_count;
+
+	printf(
+    "Rank %d: host=%s device=%d GPU=%s SMs=%d nominal_clock=%d kHz "
+    "grid=%d block=%d n=%zu\n",
+    rank,
+    hostname,
+    device,
+    prop.name,
+    prop.multiProcessorCount,
+    prop.clockRate,
+    grid,
+    block,
+    n);
 	
 	if(compute_bound==1){
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,20,&measured_unit_us);
