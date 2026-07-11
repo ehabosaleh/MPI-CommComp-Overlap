@@ -325,6 +325,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	}
 	else{
 		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,elems_per_pass,max_elems,50,memory_mode);
+		/*
 		if (rank == 0) {
     		printf("elems_per_pass = %zu\n", elems_per_pass);
     		printf("max_elems      = %zu\n", max_elems);
@@ -332,6 +333,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
     		printf("per vector     = %.3f MB\n",(double)(max_elems * sizeof(float)) / (1024.0 * 1024.0));
     		printf("3 vectors      = %.3f MB\n",(double)(3.0 * max_elems * sizeof(float)) / (1024.0 * 1024.0));
 		}
+		*/
 	}
 	MPI_Barrier(MPI_COMM_WORLD);	
 	if(dim==3){
@@ -350,9 +352,9 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 		find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,1);
 	}
 
-	
-	MPI_Barrier(MPI_COMM_WORLD);
+
 	if (rank==0) {
+			printf("=========================================================================\n");
 			if (dim==3) {
 				printf("\nRunning 3D benchmark on GPU with ranks grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
 			} else if(dim==2){
@@ -361,11 +363,13 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 				printf("\nRunning 1D benchmark on GPU with ranks grid %d\n", dims[0]);
 			}
 			printf("With manual progress: %s\n", do_progress ? "Yes" : "No");
+			if(do_progress)
+				printf("Enable progress thread: %s\n", enable_thread ? "Yes" : "No");
 			printf("Compute-bound: %s\n", compute_bound ? "Yes" : "No");
 			if(!compute_bound) {
 				printf("Memory-bound mode: %s\n", memory_mode == MEMORY_MODE_TRIAD ? "Triad" : memory_mode == MEMORY_MODE_COPY ? "Copy" : memory_mode == MEMORY_MODE_SCALE ? "Scale" : "Add");
 			}
-
+			printf("============================================================================\n");
         	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Kernel(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
     }
 	MPI_Barrier(MPI_COMM_WORLD);
