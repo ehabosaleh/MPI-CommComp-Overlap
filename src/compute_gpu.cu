@@ -219,7 +219,8 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     int best_inner_iters=1;
     double best_error=1e30;
     double best_unit_us=0.0;
-
+    int rank=0;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     for(int i=0;i<5;i++){
         measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,calibration_repeat,1, NULL);
     }
@@ -227,9 +228,11 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     for (int iter=0;iter<30;iter++){
         int mid=low+(high-low)/2;
 
-        double total_us = measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,calibration_repeat,mid,NULL);
+        double total_us=measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,calibration_repeat,mid,NULL);
 
         double unit_us=total_us/(double)calibration_repeat;
+         // unit_us is the cost of a single repeat; mid represents the corresponding inner_repeat//
+         
         double error=fabs(unit_us-target_unit_us);
 
         if(error<best_error){
@@ -249,10 +252,9 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
         MPI_Abort(MPI_COMM_WORLD,1);
     }
 
-    *measured_unit_us = best_unit_us;
-    //printf("Calibrated inner iterations: %d (measured unit time: %.3f us, target: %.3f us)\n", best_inner_iters, best_unit_us, target_unit_us);
-    return best_inner_iters;
-    
+    *measured_unit_us=best_unit_us;
+    printf("Rank %d: Calibrated inner iterations: %d (measured unit time: %.3f us, target: %.3f us)\n", best_inner_iters, best_unit_us, target_unit_us);
+    return best_inner_iters; 
 }
 double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_t n, double latency_us,double unit_us, int inner_iters, size_t max_elems,gpu_memory_calibration_t cal, int compute_bound, memory_mode_t mode,progress_thread_data_t *progress_data){
     if(latency_us<=0.0){
