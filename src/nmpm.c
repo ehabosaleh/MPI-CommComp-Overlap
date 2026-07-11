@@ -335,7 +335,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
     prop.clockRate,
     grid,
     block,
-    n);
+    N);
 	
 	if(compute_bound==1){
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,20,&measured_unit_us);
