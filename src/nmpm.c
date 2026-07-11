@@ -336,7 +336,8 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
     grid,
     block,
     N);
-	
+	fflush(stdout);
+	MPI_Barrier(MPI_COMM_WORLD);
 	if(compute_bound==1){
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,20,&measured_unit_us);
 	}
@@ -352,7 +353,6 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 		}
 		*/
 	}
-	MPI_Barrier(MPI_COMM_WORLD);	
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
 		num_neighbors=6;
@@ -369,7 +369,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 		find_neighbors(&left,&right,&front,&back,&bottom,&top,dims,coords,rank,1);
 	}
 
-
+	MPI_Barrier(MPI_COMM_WORLD);
 	if (rank==0) {
 			printf("=========================================================================\n");
 			if (dim==3) {
@@ -388,8 +388,9 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 			}
 			printf("============================================================================\n");
         	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Kernel(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
-    }
-	MPI_Barrier(MPI_COMM_WORLD);
+			fflush(stdout);
+		}
+	
 	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
 	progress_thread_data_t progress_data;
 	if(do_progress&&enable_thread){
