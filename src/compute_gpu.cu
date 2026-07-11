@@ -21,13 +21,21 @@ __global__ void compute_kernel(float *d_a, size_t n) {
 __global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__restrict__ d_a,const float *__restrict__ d_b,size_t elems_per_pass,int passes, size_t max_elems,float alpha, memory_mode_t mode){
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     size_t stride = blockDim.x * gridDim.x;
+    if(elems_per_pass==0)
+        return;
+    const size_t num_chunks = max_elems/elems_per_pass;
+    if (num_chunks == 0) {
+        return;
+    }
+
     for (int p=0;p<passes;p++){
-	    size_t base=(size_t)p*elems_per_pass;
+        const size_t chunk=(size_t)p%num_chunks;
+	    size_t base=(size_t)chunk*elems_per_pass;
+        
+
 	    for (size_t i = idx; i < elems_per_pass; i += stride) {
 		    size_t j=base+i;
-            if(j>=max_elems){
-                continue;
-            }
+
             switch(mode){
                 case MEMORY_MODE_TRIAD:
                     d_c[j] = d_a[j] + alpha*d_b[j];
@@ -106,13 +114,13 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     double best_time_us=0.0;
 
     for(int i=0;i<5;i++){
-        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,1.0f,mode,NULL);
+        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,50.0f,mode,NULL);
     }
 
     for(int iter=0;iter<30 && low<=high;iter++){
         int mid=low+(high-low)/2;
 
-        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,1.0f,mode,NULL);
+        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,50.0f,mode,NULL);
 
         if(time_us<=0.0){
             fprintf(stderr,"Invalid memory-bound calibration time\n");
@@ -135,8 +143,18 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     }
    
     double measured_pass_us=best_time_us/(double)best_passes;
+    double logical_bytes_per_element=0.0;
+    switch (mode) {
+        case MEMORY_MODE_COPY:
+        case MEMORY_MODE_SCALE:
+           logical_bytes_per_element= 2.0 * sizeof(float);
 
-    double bytes=(double)elems_per_pass * 3.0 * sizeof(float) * (double)best_passes;
+        case MEMORY_MODE_ADD:
+        case MEMORY_MODE_TRIAD:
+        default:
+            logical_bytes_per_element= 3.0 * sizeof(float);
+
+    double bytes=(double)elems_per_pass * logical_bytes_per_element * (double)best_passes;
     double bytes_per_us=bytes/best_time_us;
 
     gpu_memory_calibration_t cal;
