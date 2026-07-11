@@ -368,6 +368,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 
         	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Kernel(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
     }
+	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
 	progress_thread_data_t progress_data;
 	if(do_progress&&enable_thread){
