@@ -153,6 +153,7 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
         case MEMORY_MODE_TRIAD:
         default:
             logical_bytes_per_element= 3.0 * sizeof(float);
+    }
 
     double bytes=(double)elems_per_pass * logical_bytes_per_element * (double)best_passes;
     double bytes_per_us=bytes/best_time_us;
