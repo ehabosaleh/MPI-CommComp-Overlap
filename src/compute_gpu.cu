@@ -52,6 +52,7 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
     if(elems_per_pass==0 || passes<=0){
         return 0.0;
     }
+
     /*
     size_t required_elems=(size_t)passes*elems_per_pass;
     
@@ -71,9 +72,10 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
     if(progress_data!=NULL&&!progress_data->is_thread){
         int req_flag=0;
         while(!req_flag){
-            MPI_Testall(progress_data->num_requests,progress_data->requests,&req_flag,MPI_STATUS_IGNORE);
+            MPI_Testall(progress_data->num_requests,progress_data->requests,&req_flag,MPI_STATUSES_IGNORE);
         }
     }
+    
     CHECK_CUDA_ERROR(cudaEventSynchronize(stop));
     CHECK_CUDA_ERROR(cudaEventElapsedTime(&time_ms,start,stop));
     
@@ -171,7 +173,7 @@ double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid,
     if(progress_data!=NULL&&!progress_data->is_thread){
         int req_flag=0;
         while(!req_flag){
-            MPI_Testall(progress_data->num_requests,progress_data->requests,&req_flag,MPI_STATUS_IGNORE);
+            MPI_Testall(progress_data->num_requests,progress_data->requests,&req_flag,MPI_STATUSES_IGNORE);
         }
     }
     CHECK_CUDA_ERROR(cudaEventSynchronize(stop));
