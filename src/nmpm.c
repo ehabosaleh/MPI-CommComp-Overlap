@@ -314,7 +314,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	
 	cudaStream_t stream;
 	CHECK_CUDA_ERROR(cudaStreamCreate(&stream));
-	int grid=prop.multiProcessorCount*4;
+	int grid=prop.multiProcessorCount*6;
 	int block=TPB_256;
 	
 	init_vector(N);
@@ -412,7 +412,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
         }
         t_pure_total = 1e6 * t_pure_total/(MAX_ITER-SKIP);
 		MPI_Allreduce(&t_pure_total, &t_pure_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-			
+		
 		for (iter = 0; iter < MAX_ITER; iter++) {
 			cudaDeviceSynchronize();
             int req_count=0;
