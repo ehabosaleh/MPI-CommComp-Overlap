@@ -333,7 +333,8 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
     		printf("3 vectors      = %.3f MB\n",(double)(3.0 * max_elems * sizeof(float)) / (1024.0 * 1024.0));
     		fflush(stdout);
 		}
-	}	
+	}
+	MPI_Barrier(MPI_COMM_WORLD);	
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
 		num_neighbors=6;
