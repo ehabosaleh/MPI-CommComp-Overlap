@@ -125,7 +125,7 @@ int main(int argc, char **argv){
 	CHECK_CUDA_ERROR(cudaSetDevice(device_num));
 	cudaDeviceProp prop;
 	CHECK_CUDA_ERROR(cudaGetDeviceProperties(&prop,device_num));
-    int grid=prop.multiProcessorCount*4;
+    int grid=prop.multiProcessorCount*6;
 	int block=TPB_256;
 
     cudaStream_t stream;
