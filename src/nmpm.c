@@ -318,13 +318,12 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	int block=TPB_256;
 	
 	init_vector(N);
-
-
+	
+	
 	if(compute_bound==1){
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,1,&measured_unit_us);
 	}
 	else{
-
 		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,elems_per_pass,max_elems,50,memory_mode);
 		if (rank == 0) {
     		printf("elems_per_pass = %zu\n", elems_per_pass);
@@ -352,7 +351,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	}
 
 	
-
+	MPI_Barrier(MPI_COMM_WORLD);
 	if (rank==0) {
 			if (dim==3) {
 				printf("\nRunning 3D benchmark on GPU with ranks grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
