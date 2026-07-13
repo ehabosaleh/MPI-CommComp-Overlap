@@ -35,10 +35,10 @@ size_t parse_size(const char* s){
             exit(EXIT_FAILURE);
         }
     }
-    if(mul!=0&&v>(unsigned long)SIZE_MAX/mul){
-		fprintf(stderr,"Passed size is too large\n");
-        exit(EXIT_FAILURE);
-    }
+    //if(mul!=0&&v>(unsigned long)SIZE_MAX/mul){
+	//	fprintf(stderr,"Passed size is too large\n");
+    //    exit(EXIT_FAILURE);
+    //}
 
     return (size_t)v*mul;
  }
