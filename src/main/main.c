@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
             }
         }
         else if(strncasecmp(argv[i],"--max-bytes=",12)==0){
-            max_bytes=atoi(argv[i]+12);
+            max_bytes=parse_size(argv[i]+12);
             if(max_bytes<=0){
                 fprintf(stderr, "--max-bytes: Invalid message size.\n");
                 return -1;
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
         }
 
         else if(strncasecmp(argv[i],"--min-bytes=",12)==0){
-            min_bytes=atoi(argv[i]+12);
+            min_bytes=parse_size(argv[i]+12);
             if(min_bytes<=0){
                 fprintf(stderr, "--min-bytes: Invalid message size.\n");
                 return -1;
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]){
 
     }
     if(min_bytes>max_bytes){
-        fprintf(stderr,"Maximum message size must be larger than minimum message size\n ");
+        fprintf(stderr,"Maximum message size must be larger than minimum message size\n");
         return -1;
     }
     if(dev==1){
