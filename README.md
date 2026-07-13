@@ -45,9 +45,7 @@ Interpretation:
 The repository uses the project-provided autogen script which configures/builds the project (CMake). Typical sequence:
 
 ```sh
-# from repository root
-./autogen.sh    # prepares build (runs cmake, builds binaries)
-# binaries are placed under bin/ or similar as produced by the script
+./autogen.sh 
 ```
 
 Alternatively, a manual CMake build:
@@ -56,7 +54,6 @@ Alternatively, a manual CMake build:
 mkdir -p build && cd build
 cmake ..
 make -j
-# resulting executable typically placed in bin/ or build/ directory
 ```
 
 Running the benchmark
