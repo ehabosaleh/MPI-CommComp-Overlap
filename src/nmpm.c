@@ -353,7 +353,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	init_vector(N);
 
 	int device=local_rank%device_count;
-
+	/*
 	printf(
     "Rank %d: host=%s device=%d GPU=%s SMs=%d nominal_clock=%d kHz "
     "grid=%d block=%d n=%zu\n",
@@ -366,6 +366,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
     grid,
     block,
     N);
+	*/
 	fflush(stdout);
 	MPI_Barrier(MPI_COMM_WORLD);
 	if(compute_bound==1){
