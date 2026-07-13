@@ -81,7 +81,7 @@ static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*
 	}
 
 }
-static void post_sendrecv(int left,int right, int front, int back, int bottom, int top, int dim,char**send_buffers,char**recv_buffers, MPI_Request *reqs, int *req_count,long local_N){
+static void post_sendrecv(int left,int right, int front, int back, int bottom, int top, int dim,char**send_buffers,char**recv_buffers, MPI_Request *reqs, int *req_count,size_t local_N){
 	if (dim==3) {
 		if(left != MPI_PROC_NULL) {
 			MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
@@ -191,7 +191,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 	if(do_progress)
 		start_progress_thread(&progress_data);
 
-    for (long local_N=min_bytes;local_N <= max_bytes; local_N *= 2) {
+    for (size_t local_N=min_bytes;local_N <= max_bytes; local_N *= 2) {
 
         char *send_buffers[6];
         char *recv_buffers[6];
@@ -401,7 +401,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	else
 		progress_data.is_thread=0;
 
-    for (long local_N=min_bytes;local_N <= max_bytes; local_N *= 2){
+    for (size_t local_N=min_bytes;local_N <= max_bytes; local_N *= 2){
         char *send_buffers[6];
         char *recv_buffers[6];
         	
