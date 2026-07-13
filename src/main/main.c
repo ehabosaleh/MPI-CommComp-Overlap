@@ -4,8 +4,8 @@ int main(int argc, char *argv[]){
     int dim = DIM;
     int dev=0;
     int compToPureCommRatio=COMP_TO_COMM_RATIO;
-    long min_bytes=MIN_MESSAGE_SIZE;
-    long max_bytes=MAX_MESSAGE_SIZE;
+    size_t min_bytes=MIN_MESSAGE_SIZE;
+    size_t max_bytes=MAX_MESSAGE_SIZE;
     int do_progress=0;
     int enable_thread=0;
     int compute_bound=1;
