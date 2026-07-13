@@ -111,13 +111,13 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     double best_time_us=0.0;
 
     for(int i=0;i<100;i++){
-        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,100.0f,mode,NULL);
+        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,50.0f,mode,NULL);
     }
 
     for(int iter=0;iter<30 && low<=high;iter++){
         int mid=low+(high-low)/2;
 
-        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,100.0f,mode,NULL);
+        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,50.0f,mode,NULL);
 
         if(time_us<=0.0){
             fprintf(stderr,"Invalid memory-bound calibration time\n");
