@@ -114,56 +114,56 @@ static void find_neighbors(int*left,int*right,int*front,int*back,int*bottom,int*
 static void post_sendrecv(int left,int right, int front, int back, int bottom, int top, int dim,char**send_buffers,char**recv_buffers, MPI_Request *reqs, int *req_count,size_t local_N){
 	if (dim==3) {
 		if(left != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 		if(right != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 		if(front != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[2], local_N, MPI_CHAR, front, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[2], local_N, MPI_CHAR, front, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[2], local_N, MPI_CHAR, front, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[2], local_N, MPI_CHAR, front, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 		if(back != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[3], local_N, MPI_CHAR, back, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[3], local_N, MPI_CHAR, back, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[3], local_N, MPI_CHAR, back, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[3], local_N, MPI_CHAR, back, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 		if(top != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[4], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[4], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[4], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[4], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 		if(bottom != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[5], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
     } else if(dim==2){ 
 
 		if(left != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 		if(right != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 		if(top != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[2], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[2], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[2], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[2], local_N, MPI_CHAR, top, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 		if(bottom != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[3], local_N, MPI_CHAR, bottom, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
     }
 	else if(dim==1){
 		if(left != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[0], local_N, MPI_CHAR, left, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 		if(right != MPI_PROC_NULL) {
-			MPI_Isend(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
-			MPI_Irecv(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Isend_c(send_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
+			MPI_Irecv_c(recv_buffers[1], local_N, MPI_CHAR, right, 0, MPI_COMM_WORLD, &reqs[(*req_count)++]);
 		}
 	}
 
