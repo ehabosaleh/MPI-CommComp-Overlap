@@ -20,16 +20,16 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 
 
 #ifndef MAX_ITER
-#define MAX_ITER 1000
+#define MAX_ITER 10
 #endif
 
 #ifndef SKIP
-#define SKIP 100
+#define SKIP 1
 #endif
 
 
 #ifndef MAX_MESSAGE_SIZE
-#define MAX_MESSAGE_SIZE (1ULL << 40)
+#define MAX_MESSAGE_SIZE (1ULL << 50)
 #endif
 
 #ifndef MIN_MESSAGE_SIZE
