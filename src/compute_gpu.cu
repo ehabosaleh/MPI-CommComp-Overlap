@@ -19,38 +19,35 @@ __global__ void compute_kernel(float *d_a, size_t n) {
 
 
 __global__ void memory_bound_kernel(float *__restrict__ d_c, const float *__restrict__ d_a,const float *__restrict__ d_b,size_t elems_per_pass,int passes, size_t max_elems,float alpha, memory_mode_t mode){
-    size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-    size_t stride = blockDim.x * gridDim.x;
+    size_t idx=blockIdx.x*blockDim.x+threadIdx.x;
+    size_t stride=blockDim.x*gridDim.x;
     if(elems_per_pass==0)
         return;
-    const size_t num_chunks = max_elems/elems_per_pass;
-    if (num_chunks == 0) {
+    const size_t num_chunks=max_elems/elems_per_pass;
+    if(num_chunks==0){
         return;
     }
 
-    for (int p=0;p<passes;p++){
+    for(int p=0;p<passes;p++){
         const size_t chunk=(size_t)p%num_chunks;
 	    size_t base=(size_t)chunk*elems_per_pass;
-        
-
-	    for (size_t i = idx; i < elems_per_pass; i += stride) {
+	    for(size_t i=idx;i<elems_per_pass;i+=stride) {
 		    size_t j=base+i;
-
             switch(mode){
                 case MEMORY_MODE_TRIAD:
-                    d_c[j] = d_a[j] + alpha*d_b[j];
+                    d_c[j]=d_a[j]+alpha*d_b[j];
                     break;
                 case MEMORY_MODE_COPY:
-                    d_c[j] = d_a[j];
+                    d_c[j]=d_a[j];
                     break;
                 case MEMORY_MODE_SCALE:
-                    d_c[j] = alpha*d_a[j];
+                    d_c[j]=alpha*d_a[j];
                     break;
                 case MEMORY_MODE_ADD:
-                    d_c[j] = d_a[j] + d_b[j];
+                    d_c[j]=d_a[j]+d_b[j];
                     break;
                 default:
-                    d_c[j] = d_a[j] + alpha*d_b[j]; 
+                    d_c[j]=d_a[j]+alpha*d_b[j]; 
             }
     
         }
@@ -103,7 +100,7 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     //size_t best_elems=max_elems;
 
     int low=1;
-    int high=(int)(max_elems / elems_per_pass);
+    int high=(int)(max_elems/elems_per_pass);
     if(high<1){
         fprintf(stderr,"Error: max_elems (%zu) is less than elems_per_pass (%zu)\n",max_elems,elems_per_pass);
         MPI_Abort(MPI_COMM_WORLD,1);
@@ -113,14 +110,14 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     double best_error=1e30;
     double best_time_us=0.0;
 
-    for(int i=0;i<5;i++){
-        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,50.0f,mode,NULL);
+    for(int i=0;i<100;i++){
+        measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,1,max_elems,25.0f,mode,NULL);
     }
 
     for(int iter=0;iter<30 && low<=high;iter++){
         int mid=low+(high-low)/2;
 
-        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,50.0f,mode,NULL);
+        double time_us=measure_gpu_memory_bound_kernel_us(d_c,d_a,d_b,stream,grid,block,elems_per_pass,mid,max_elems,25.0f,mode,NULL);
 
         if(time_us<=0.0){
             fprintf(stderr,"Invalid memory-bound calibration time\n");
