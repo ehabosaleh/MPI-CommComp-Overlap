@@ -86,11 +86,11 @@ else()
     target_compile_features(nmpm PUBLIC c_std_11)
 endif()
 
-add_executable(test src/main/main.c )
+add_executable(overlapX src/main/main.c )
 
-target_link_libraries(test PRIVATE nmpm )
+target_link_libraries(overlapX PRIVATE nmpm )
 if(HAVE_CUDA)
-    set_target_properties(test PROPERTIES
+    set_target_properties(overlapX PROPERTIES
         LINKER_LANGUAGE CUDA
     )
 endif()
