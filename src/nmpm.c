@@ -172,13 +172,16 @@ static void post_sendrecv(int left,int right, int front, int back, int bottom, i
 int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, size_t min_bytes,size_t max_bytes, int compute_bound,memory_mode_t memory_mode, int do_progress) { 
 	int iter;
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
-    double overlap=0.0;
-    double  t_pure_global=0.0, t_compute_global=0.0, t_ovrl_global=0.0;
+    double overlap=0.0,overlap_local=0.0,overlap_global=0.0,overlap_sq=0.0,overlap_sq_global=0.0;
+    //double  t_pure_global=0.0, t_compute_global=0.0, t_ovrl_global=0.0;
 	double t_comp=0.0,t_ovrl=0.0;
-
 	int dims[3], coords[3];
 	int num_neighbors;
 	int left=MPI_PROC_NULL, right=MPI_PROC_NULL, front=MPI_PROC_NULL, back=MPI_PROC_NULL, bottom=MPI_PROC_NULL, top=MPI_PROC_NULL;
+	struct {
+    	double value;
+    	int rank;
+	}local_maxloc,global_maxloc;
 
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -212,7 +215,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 		if (!compute_bound) {
 			printf("Memory-bound mode: %s\n", memory_mode == MEMORY_MODE_TRIAD ? "Triad" : memory_mode == MEMORY_MODE_COPY ? "Copy" : memory_mode == MEMORY_MODE_SCALE ? "Scale" : "Add");
 		}
-		printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Computation(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
+		printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Pure Comm(us)","Comp CPU(us)","Actual Ratio %","Requested Ratio %","Overlap Max(us)","Overlap Ratio%","Local mean ± SD");
     }
 
     MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
@@ -229,7 +232,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 		for (int i = 0; i < 6; i++) {
         	send_buffers[i] = (char *)malloc(local_N);
         	recv_buffers[i] = (char *)malloc(local_N);
-        	for (long j = 0; j < local_N; j++) {
+        	for (size_t j = 0; j < local_N; j++) {
             	send_buffers[i][j] = 'a' + i;
             	recv_buffers[i][j] = 'a' + i;
         	}
@@ -252,8 +255,6 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
             		
     	}
         t_pure_total = 1e6 * t_pure_total/(MAX_ITER-SKIP);
-		MPI_Allreduce(&t_pure_total, &t_pure_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
         for (iter = 0; iter < MAX_ITER; iter++) {
             int req_count = 0;
 			MPI_Barrier(MPI_COMM_WORLD);
@@ -263,7 +264,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
             if(do_progress){
 				post_progress_thread_requests(&progress_data, reqs, req_count);
 			}
-			double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
+			double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_total;
             double tcomp_start = MPI_Wtime();
             compute_on_host((targetComputeTime/1e6),compute_bound,memory_mode);
             t_comp = MPI_Wtime()-tcomp_start;
@@ -284,23 +285,50 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 
         t_comp_total = (t_comp_total*1e6)/(MAX_ITER-SKIP);
         t_ovrl_total= (t_ovrl_total*1e6)/(MAX_ITER-SKIP);
+		overlap_local= 100.0 * fmax(0.0,fmin(1.0,(t_pure_total+t_comp_total-t_ovrl_total)/fmin(t_pure_total, t_comp_total)));
+		overlap_sq=overlap_local*overlap_local;
 		
+		MPI_Allreduce(&overlap_local,&overlap_global,1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+		MPI_Allreduce(&overlap_sq, &overlap_sq_global,1, MPI_DOUBLE, MPI_SUM,MPI_COMM_WORLD);
+
+		local_maxloc.value=t_ovrl_total;
+		local_maxloc.rank =rank;
+		MPI_Allreduce(&local_maxloc,&global_maxloc,1,MPI_DOUBLE_INT,MPI_MAXLOC,MPI_COMM_WORLD);
+		int critical_rank=global_maxloc.rank;
+		double critical_times[3];
+		if(rank==critical_rank) {
+    		critical_times[0]=t_pure_total;
+   			critical_times[1]=t_comp_total;
+    		critical_times[2]=t_ovrl_total;
+		}
+
+		MPI_Bcast(critical_times,3,MPI_DOUBLE,critical_rank,MPI_COMM_WORLD);
+
+		double t_pure_reported=critical_times[0];
+		double t_comp_reported=critical_times[1];
+		double t_ovrl_reported=critical_times[2];
+
+		
+		/*
 		MPI_Allreduce(&t_comp_total, &t_compute_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 		MPI_Allreduce(&t_ovrl_total, &t_ovrl_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+		MPI_Allreduce(&t_pure_total, &t_pure_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+		*/
 
         if(rank == 0) {
-			double actualRatio=100.0*(t_compute_global/t_pure_global);
-			overlap= 100.0 * fmax(0.0,fmin(1.0,(t_pure_global+t_compute_global-t_ovrl_global)/fmin(t_pure_global, t_compute_global)));
-            printf("%-20ld%-20.3f%-20.3f%-20.3f%-20d%-20.3f%-20.3f\n",local_N, t_pure_global, t_compute_global,actualRatio,compToPureCommRatio, t_ovrl_global, overlap);
+			double actualRatio=100.0*(t_comp_reported/t_pure_reported);
+			overlap= 100.0 * fmax(0.0,fmin(1.0,(t_pure_reported+t_comp_reported-t_ovrl_reported)/fmin(t_pure_reported, t_comp_reported)));
+            double overlap_avr=overlap_global/size;
+			double overlap_std = sqrt(fmax(0.0,overlap_sq_global/size-overlap_avr*overlap_avr));
+			printf("%-20zu%-20.3f%-20.3f%-20.3f%-20d%-20.3f%-20.3f%-10.3f ± %-8.3f\n",local_N, t_pure_reported, t_comp_reported,actualRatio,compToPureCommRatio, t_ovrl_reported, overlap,overlap_avr,overlap_std);
         }
 		t_comp_total=0;
 		t_ovrl_total=0;
 		t_pure_total=0;
-		t_pure_global=0;
-		t_compute_global=0;
-		t_ovrl_global=0;
-		overlap=0;
-
+		//t_pure_global=0;
+		//t_compute_global=0;
+		//t_ovrl_global=0;
+	
         for (int i = 0; i < 6; i++) {
         	free(send_buffers[i]);
         	free(recv_buffers[i]);
@@ -328,9 +356,13 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	double measured_unit_us=0.0;
 
     double t_pure_total=0.0, t_comp_total=0.0, t_ovrl_total=0.0;
-    double overlap=0.0;
-    double  t_pure_global=0.0, t_compute_global=0.0, t_ovrl_global=0.0;
+    double overlap=0.0,overlap_local=0.0,overlap_global=0.0,overlap_sq=0.0,overlap_sq_global=0.0;
+    //double  t_pure_global=0.0, t_compute_global=0.0, t_ovrl_global=0.0;
 	double t_comp=0.0,t_ovrl=0.0;
+	struct {
+    	double value;
+    	int rank;
+	}local_maxloc,global_maxloc;
 
 	int dims[3], coords[3];
 	int num_neighbors;
@@ -462,9 +494,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             }
             		
         }
-        t_pure_total = 1e6 * t_pure_total/(MAX_ITER-SKIP);
-		MPI_Allreduce(&t_pure_total, &t_pure_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-		
+        t_pure_total = 1e6 * t_pure_total/(MAX_ITER-SKIP);		
 		for (iter = 0; iter < MAX_ITER; iter++) {
 			cudaDeviceSynchronize();
             int req_count=0;
@@ -498,21 +528,46 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
         t_comp_total = (t_comp_total)/(MAX_ITER-SKIP);
         t_ovrl_total= (1e6*t_ovrl_total)/(MAX_ITER-SKIP);
 		
-		MPI_Allreduce(&t_comp_total, &t_compute_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-		MPI_Allreduce(&t_ovrl_total, &t_ovrl_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+		overlap_local= 100.0 * fmax(0.0,fmin(1.0,(t_pure_total+t_comp_total-t_ovrl_total)/fmin(t_pure_total, t_comp_total)));
+		overlap_sq=overlap_local*overlap_local;
+		
+		MPI_Allreduce(&overlap_local,&overlap_global,1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+		MPI_Allreduce(&overlap_sq, &overlap_sq_global,1, MPI_DOUBLE, MPI_SUM,MPI_COMM_WORLD);
+
+		local_maxloc.value=t_ovrl_total;
+		local_maxloc.rank =rank;
+		MPI_Allreduce(&local_maxloc,&global_maxloc,1,MPI_DOUBLE_INT,MPI_MAXLOC,MPI_COMM_WORLD);
+		int critical_rank=global_maxloc.rank;
+		double critical_times[3];
+		if(rank==critical_rank) {
+    		critical_times[0]=t_pure_total;
+   			critical_times[1]=t_comp_total;
+    		critical_times[2]=t_ovrl_total;
+		}
+
+		MPI_Bcast(critical_times,3,MPI_DOUBLE,critical_rank,MPI_COMM_WORLD);
+
+		double t_pure_reported=critical_times[0];
+		double t_comp_reported=critical_times[1];
+		double t_ovrl_reported=critical_times[2];
+
+		//MPI_Allreduce(&t_comp_total, &t_compute_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+		//MPI_Allreduce(&t_ovrl_total, &t_ovrl_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+		//MPI_Allreduce(&t_pure_total, &t_pure_global, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
         if(rank == 0) {
-			double actualRatio=100.0*(t_compute_global/t_pure_global);
-			overlap= 100.0 * fmax(0.0,fmin(1.0,(t_pure_global+t_compute_global-t_ovrl_global)/fmin(t_pure_global, t_compute_global)));
-            printf("%-20ld%-20.3f%-20.3f%-20.3f%-20d%-20.3f%-20.3f\n",local_N, t_pure_global, t_compute_global,actualRatio,compToPureCommRatio, t_ovrl_global, overlap);
+			double actualRatio=100.0*(t_comp_reported/t_pure_reported);
+			overlap= 100.0 * fmax(0.0,fmin(1.0,(t_pure_reported+t_comp_reported-t_ovrl_reported)/fmin(t_pure_reported, t_comp_reported)));
+            double overlap_avr=overlap_global/size;
+			double overlap_std = sqrt(fmax(0.0,overlap_sq_global/size-overlap_avr*overlap_avr));
+			printf("%-20zu%-20.3f%-20.3f%-20.3f%-20d%-20.3f%-20.3f%-10.3f ± %-8.3f\n",local_N, t_pure_reported, t_comp_reported,actualRatio,compToPureCommRatio, t_ovrl_reported, overlap,overlap_avr,overlap_std);
         }
 		t_comp_total=0;
 		t_ovrl_total=0;
 		t_pure_total=0;
-		t_pure_global=0;
-		t_compute_global=0;
-		t_ovrl_global=0;
-		overlap=0;
+		//t_pure_global=0;
+		//t_compute_global=0;
+		//t_ovrl_global=0;
 
         for (int i = 0; i < 6; i++) {
         	CHECK_CUDA_ERROR(cudaFree(send_buffers[i]));
