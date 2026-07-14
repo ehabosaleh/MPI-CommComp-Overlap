@@ -450,7 +450,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 				printf("Memory-bound mode: %s\n", memory_mode == MEMORY_MODE_TRIAD ? "Triad" : memory_mode == MEMORY_MODE_COPY ? "Copy" : memory_mode == MEMORY_MODE_SCALE ? "Scale" : "Add");
 			}
 			printf("============================================================================\n");
-        	printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Communication(us)","Kernel(us)","Actual Ratio %","Requested Ratio %","Overall","Overlapping %");
+			printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Pure Comm(us)","Comp GPU(us)","Actual Ratio %","Requested Ratio %","Overlap Max(us)","Overlap Ratio%","Local mean ± SD");
 			fflush(stdout);
 		}
 	
@@ -509,7 +509,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 				progress_data.requests = reqs;
     			progress_data.num_requests = req_count;
 			}
-            double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_global;
+            double targetComputeTime = (compToPureCommRatio/100.0)*t_pure_total;
             t_comp = compute_on_gpu(d_a,stream,grid,block,VECTOR_DIM_COMP,targetComputeTime,measured_unit_us,gpu_inner_iters,max_elems,mem_cal,compute_bound,memory_mode,&progress_data);
 			if(do_progress&&enable_thread){
 				wait_progress_thread(&progress_data);
