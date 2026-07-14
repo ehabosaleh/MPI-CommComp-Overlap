@@ -44,10 +44,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 #define COMP_TO_COMM_RATIO 100
 #endif
 
-struct {
-    double value;
-    int rank;
-}local_maxloc,global_maxloc;
+
 
 
 void usage(char *prog_name);
