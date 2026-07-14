@@ -20,11 +20,11 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 
 
 #ifndef MAX_ITER
-#define MAX_ITER 10
+#define MAX_ITER 100
 #endif
 
 #ifndef SKIP
-#define SKIP 1
+#define SKIP 10
 #endif
 
 
