@@ -223,6 +223,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 
     MPI_Request *reqs=(MPI_Request*)malloc(2*num_neighbors*sizeof(MPI_Request));
 	progress_thread_data_t progress_data;
+	progress_data.is_gpu=0;
 
 	if(do_progress)
 		start_progress_thread(&progress_data);
