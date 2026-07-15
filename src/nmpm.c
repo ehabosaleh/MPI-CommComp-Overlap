@@ -204,6 +204,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 
 	init_memory_bound_buffers(256UL*1024UL*1024UL);
     if (rank==0) {
+		printf("=========================================================================\n");
 		if (dim==3) {
 			printf("\nRunning 3D benchmark on CPU with ranks grid %dx%dx%d\n", dims[0], dims[1], dims[2]);
 		} else if(dim==2){
@@ -216,6 +217,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 		if (!compute_bound) {
 			printf("Memory-bound mode: %s\n", memory_mode == MEMORY_MODE_TRIAD ? "Triad" : memory_mode == MEMORY_MODE_COPY ? "Copy" : memory_mode == MEMORY_MODE_SCALE ? "Scale" : "Add");
 		}
+		printf("=========================================================================\n");
 		printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s%-20s\n","Size (Bytes)","Pure Comm(us)","Comp CPU(us)","Actual Ratio %","Requested Ratio %","Overlap Max(us)","Overlap Ratio%","Local mean ± SD");
     }
 
