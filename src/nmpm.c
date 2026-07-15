@@ -211,6 +211,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 		} else if(dim==1){
 			printf("\nRunning 1D benchmark on CPU with ranks grid %d\n", dims[0]);
 		}
+		printf("With manual progress: %s\n", do_progress ? "Yes" : "No");
 		printf("Compute-bound benchmark: %s\n", compute_bound ? "Yes" : "No");
 		if (!compute_bound) {
 			printf("Memory-bound mode: %s\n", memory_mode == MEMORY_MODE_TRIAD ? "Triad" : memory_mode == MEMORY_MODE_COPY ? "Copy" : memory_mode == MEMORY_MODE_SCALE ? "Scale" : "Add");
