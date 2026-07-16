@@ -471,7 +471,12 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
     for (size_t local_N=min_bytes;local_N <= max_bytes; local_N *= 2){
         char *send_buffers[6];
         char *recv_buffers[6];
-        	
+		size_t free_bytes, total_bytes;
+		CHECK_CUDA_ERROR(cudaMemGetInfo(&free_bytes,&total_bytes));
+		if (local_N>free_bytes/12){
+			fprintf(stderr,"Rank %d: cannot allocate 12 × %.2f GiB; only %.2f GiB is free\n",rank,(double)local_N / (1024.0 * 1024.0 * 1024.0),(double)free_bytes / (1024.0 * 1024.0 * 1024.0));
+        	break;
+    	}
 		for (int i = 0; i < 6; i++) {
 			CHECK_CUDA_ERROR(cudaMalloc((void**)&send_buffers[i],local_N));
 			CHECK_CUDA_ERROR(cudaMalloc((void**)&recv_buffers[i],local_N));
