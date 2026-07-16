@@ -97,7 +97,7 @@ int start_progress_thread(progress_thread_data_t *progress_data);
 int post_progress_thread_requests(progress_thread_data_t *progress_data, MPI_Request *requests, int num_requests);
 int terminate_progress_thread(progress_thread_data_t *progress_data);
 int wait_progress_thread(progress_thread_data_t *progress_data);
-
+size_t get_free_memory(void);
 //void compute_on_host(double latency, int size_threshold);
 
 void compute_on_host(double latency, int compute_bound,memory_mode_t memory_mode);

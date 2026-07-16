@@ -304,3 +304,12 @@ void compute_on_host(double latency_sec, int compute_bound, memory_mode_t memory
 
     } while ((now - start) < latency_sec);
 }
+size_t get_free_memory(void){
+    long pages=sysconf(_SC_AVPHYS_PAGES);
+    long page_size=sysconf(_SC_PAGESIZE);
+
+    if (pages<0||page_size<0) {
+        return 0;
+    }
+    return (size_t)pages*(size_t)page_size;
+}
