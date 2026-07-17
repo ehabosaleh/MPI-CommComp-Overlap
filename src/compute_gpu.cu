@@ -74,7 +74,7 @@ double measure_gpu_memory_bound_kernel_us(float *d_c, const float *d_a,const flo
     memory_bound_kernel<<<grid,block,0,stream>>>(d_c,d_a,d_b,elems_per_pass,passes,max_elems,alpha,mode);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
-    if(progress_data!=NULL&&!progress_data->is_thread){
+    if(progress_data!=NULL&&!progress_data->is_thread&&progress_data.do_progress){
         int req_flag=0;
         while(!req_flag){
             cudaError_t event_status = cudaEventQuery(stop);
@@ -190,7 +190,7 @@ double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid,
     compute_bound_kernel<<<grid,block,0,stream>>>(d_a,n,repeat,inner_iters);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
-    if(progress_data!=NULL&&!progress_data->is_thread){
+    if(progress_data!=NULL&&!progress_data->is_thread&&progress_data.do_progress){
         int req_flag=0;
         while(!req_flag){
             cudaError_t event_status = cudaEventQuery(stop);
