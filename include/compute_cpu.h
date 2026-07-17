@@ -30,7 +30,7 @@ typedef struct{
     int cuda_device;
     int is_gpu;
     int is_thread;
-
+    int do_progress;
 } progress_thread_data_t;
 
 #define atomic_load_int(ptr) \
