@@ -233,7 +233,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
         char *send_buffers[6];
         char *recv_buffers[6];
 		size_t avil_mem=get_free_memory();
-		size_t usable = available * 8 / 10;
+		size_t usable = avil_mem*8/10;
 		if(local_N>usable/12) {
         	fprintf(stderr,"Rank %d: insufficient host memory for 12 buffers of %.2f GiB each. Available: %.2f GiB\n",rank,(double)local_N / (1024.0 * 1024.0 * 1024.0),(double)available / (1024.0 * 1024.0 * 1024.0));
         	break;
