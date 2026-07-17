@@ -6,6 +6,7 @@
 #include<mpi.h>
 #include<pthread.h>
 #include <stdint.h>
+#include <unistd.h>
 #if HAVE_CUDA 
     #include<cuda_runtime.h>
 #endif
