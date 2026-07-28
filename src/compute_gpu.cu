@@ -227,7 +227,8 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
 
         double total_us=measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,calibration_repeat,mid,NULL);
 
-        double unit_us=total_us/(double)calibration_repeat;
+        //double unit_us=total_us/(double)calibration_repeat;
+        double unit_us=total_us;
          // unit_us is the cost of a single repeat; mid represents the corresponding inner_repeat//
          
         double error=fabs(unit_us-target_unit_us);
@@ -260,8 +261,8 @@ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_
     }
     if(compute_bound){
         int repeat = (int)ceil(latency_us/unit_us);
-        inner_iters=(uint64_t)ceil(latency_us / unit_us)*inner_iters;
-        return measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,repeat,inner_iters,progress_data);
+        uint64_t total_inner_iters=(uint64_t)ceil(latency_us / unit_us)*inner_iters;
+        return measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,repeat,total_inner_iters,progress_data);
     }else{ 
         int passes = (int)ceil(latency_us/cal.measured_unit_us);
 
