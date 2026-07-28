@@ -171,12 +171,12 @@ __global__ void compute_bound_kernel(float*d_a, size_t n, int repeat, int inner_
     size_t stride = blockDim.x * gridDim.x;
     for (size_t i=idx; i<n; i+=stride){
         float x=d_a[i];
-        for(int r=0;r<repeat;r++){
+        //for(int r=0;r<repeat;r++){
             #pragma unroll 1
             for(int k=0;k<inner_iters;k++) {
                 x=x*1.000001f+0.000001f;
             }
-        }
+        //}
 
         d_a[i]=x;
     }
@@ -260,6 +260,7 @@ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_
     }
     if(compute_bound){
         int repeat = (int)ceil(latency_us/unit_us);
+        inner_iters=(uint64_t)ceil(latency_us / unit_us)*inner_iters;
         return measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,repeat,inner_iters,progress_data);
     }else{ 
         int passes = (int)ceil(latency_us/cal.measured_unit_us);
