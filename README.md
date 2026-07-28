@@ -1,6 +1,6 @@
-# Non-blocking Multi-player Ping-pong Microbenchmark (NMPM)
+# HIDE-MPI: A Multidimensional Benchmark for Evaluating MPI Computation–Communication Overlap on CPUs and GPUs Systems
 
-NMPM measures how much communication can be hidden behind computation when using nonblocking MPI operations (MPI_Isend, MPI_Irecv, MPI_Waitall) in neighbor-exchange patterns (1D, 2D, 3D). The benchmark supports CPU-only and GPU-aware MPI builds and includes instrumentation to detect whether GPU communication is performed without host staging (GPUDirect / NVLink) and to evaluate MPI asynchronous progress behavior.
+HIDE-MPI measures how much communication can be hidden behind computation when using nonblocking MPI operations (MPI_Isend, MPI_Irecv, MPI_Waitall) in neighbor-exchange patterns (1D, 2D, 3D). The benchmark supports CPU-only and GPU-aware MPI builds and includes instrumentation to detect whether GPU communication is performed without host staging (GPUDirect / NVLink) and to evaluate MPI asynchronous progress behavior.
 
 ## Key goals:
 - Quantify communication/computation overlap in realistic neighbor-exchange kernels.
