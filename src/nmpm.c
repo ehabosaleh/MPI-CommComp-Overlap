@@ -410,12 +410,13 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	*/
 	fflush(stdout);
 	MPI_Barrier(MPI_COMM_WORLD);
+	/*
 	if(compute_bound==1){
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,50,&measured_unit_us);
 	}
 	else{
 		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,elems_per_pass,max_elems,50,memory_mode);
-		/*
+		
 		if (rank == 0) {
     		printf("elems_per_pass = %zu\n", elems_per_pass);
     		printf("max_elems      = %zu\n", max_elems);
@@ -423,8 +424,9 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
     		printf("per vector     = %.3f MB\n",(double)(max_elems * sizeof(float)) / (1024.0 * 1024.0));
     		printf("3 vectors      = %.3f MB\n",(double)(3.0 * max_elems * sizeof(float)) / (1024.0 * 1024.0));
 		}
-		*/
+		
 	}
+	*/
 	if(dim==3){
 		coordinates(dims,coords,rank,size,3);
 		num_neighbors=6;
@@ -514,7 +516,22 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             }
             		
         }
-        t_pure_total = 1e6 * t_pure_total/(MAX_ITER-SKIP);		
+        t_pure_total = 1e6 * t_pure_total/(MAX_ITER-SKIP);
+		if(compute_bound==1){
+			gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,t_pure_total,&measured_unit_us);
+		}
+		else{
+			mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,elems_per_pass,max_elems,t_pure_total,memory_mode);
+		/*
+		if (rank == 0) {
+    		printf("elems_per_pass = %zu\n", elems_per_pass);
+    		printf("max_elems      = %zu\n", max_elems);
+    		printf("max passes     = %zu\n", max_elems / elems_per_pass);
+    		printf("per vector     = %.3f MB\n",(double)(max_elems * sizeof(float)) / (1024.0 * 1024.0));
+    		printf("3 vectors      = %.3f MB\n",(double)(3.0 * max_elems * sizeof(float)) / (1024.0 * 1024.0));
+		}
+		*/
+		}	
 		for (iter = 0; iter < MAX_ITER; iter++) {
 			cudaDeviceSynchronize();
             int req_count=0;
