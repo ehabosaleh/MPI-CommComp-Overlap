@@ -160,7 +160,7 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     cal.measured_unit_us=measured_pass_us;
     cal.bytes_per_us=bytes_per_us;
     cal.gb_per_s=bytes_per_us*1e6/1e9;
-    printf("Calibrated memory-bound kernel: %zu elements, %d passes, %.6f us total, %.6f us/pass, %.3f bytes/us, %.3f GB/s\n",cal.elems_per_pass,best_passes,best_time_us,cal.measured_unit_us,cal.bytes_per_us,cal.gb_per_s);
+    //printf("Calibrated memory-bound kernel: %zu elements, %d passes, %.6f us total, %.6f us/pass, %.3f bytes/us, %.3f GB/s\n",cal.elems_per_pass,best_passes,best_time_us,cal.measured_unit_us,cal.bytes_per_us,cal.gb_per_s);
     fflush(stdout);
     return cal;
 }
@@ -250,7 +250,7 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     }
 
     *measured_unit_us=best_unit_us;
-    printf("Rank %d: Calibrated inner iterations: %d (measured unit time: %.3f us, target: %.3f us)\n",rank, best_inner_iters, best_unit_us, target_unit_us);
+    //printf("Rank %d: Calibrated inner iterations: %d (measured unit time: %.3f us, target: %.3f us)\n",rank, best_inner_iters, best_unit_us, target_unit_us);
     fflush(stdout);
     return best_inner_iters; 
 }
