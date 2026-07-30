@@ -11,7 +11,7 @@ void usage(char *prog_name) {
 	fprintf(stderr,"--max-bytes: Desired maximum number of bytes\n\n");
 	fprintf(stderr,"--compute-bound: Flag to indicate compute-bound benchmark\n\n");
 	fprintf(stderr,"--memory-mode: Mode for memory-bound operations (triad, copy, scale, add)\n\n");
-	fprintf(stderr,"Example:\n mpirun -np 36 ./overlapX --dim=2 --ratio=100 --dev=0 --with-progress=1 --min-bytes=1024 --max-bytes=1048576 --compute-bound=0 --memory-mode=triad\n\n");
+	fprintf(stderr,"Example:\n mpirun -np 36 ./overlapX --dim=2 --ratio=100 --dev=0 --with-progress=1 --min-bytes=1048576 --max-bytes=67108864 --compute-bound=0 --memory-mode=triad\n\n");
 }
 
 size_t parse_size(const char* s){
@@ -392,23 +392,14 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 	int block=TPB_256;
 	
 	init_vector(N);
-
-	int device=local_rank%device_count;
 	/*
-	printf(
-    "Rank %d: host=%s device=%d GPU=%s SMs=%d nominal_clock=%d kHz "
-    "grid=%d block=%d n=%zu\n",
-    rank,
-    hostname,
-    device,
-    prop.name,
-    prop.multiProcessorCount,
-    prop.clockRate,
-    grid,
-    block,
-    N);
-	*/
+	int device=local_rank%device_count;
+	
+	printf( "Rank %d: host=%s device=%d GPU=%s SMs=%d nominal_clock=%d kHz " "grid=%d block=%d n=%zu\n", rank,hostname,device,prop.name,prop.multiProcessorCount,prop.clockRate,grid,block,N);
+
 	fflush(stdout);
+	*/
+
 	MPI_Barrier(MPI_COMM_WORLD);
 	if(compute_bound==1){
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,50,&measured_unit_us);
