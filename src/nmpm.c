@@ -1,17 +1,17 @@
 #include"nmpm.h"
 
 void usage(char *prog_name) {
-	fprintf(stderr, "Usage: %s [--dim=N] [--ratio=P] [--dev=gpu/cpu] [--with-progress=y/n] [--min-bytes=N] [--max-bytes=N] [--memory-mode=MODE]\n", prog_name);
-	fprintf(stderr, "--dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n");
-	fprintf(stderr, "--ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n");
-	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n");
-	fprintf(stderr,"--with-progress: 1 to progress communication manually or 0 to rely on internal MPI progress\n");
-	fprintf(stderr,"--progress-thread: 1 to use a dedicated progress thread, 0 to use manual testing of pending requests (Only with GPU) ");
-	fprintf(stderr,"--min-bytes: Desired minimum number of bytes\n");
-	fprintf(stderr,"--max-bytes: Desired maximum number of bytes\n");
-	fprintf(stderr,"--compute-bound: Flag to indicate compute-bound benchmark\n");
-	fprintf(stderr,"--memory-mode: Mode for memory-bound operations (triad, copy, scale, add)\n");
-	fprintf(stderr,"Example: mpirun --hostfile hostfile -np <num_processes> ./test --dim=2 --ratio=50 --dev=1 --with-progress=1 --min-bytes=1024 --max-bytes=1048576 --compute-bound=0 --memory-mode=triad\n");
+	fprintf(stderr,"Usage: %s [--dim=N] [--ratio=P] [--dev=0/1] [--with-progress=0/1] [--progress-thread=0/1] [--min-bytes=N] [--max-bytes=N] [--compute-bound=0/1] [--memory-mode=MODE]\n\n", prog_name);
+	fprintf(stderr,"--dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n\n");
+	fprintf(stderr,"--ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n\n");
+	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n\n");
+	fprintf(stderr,"--with-progress: 0 to disable progress thread, 1 to fork progress thread for each CPU rank. When using GPUs, it enables CPU Polling without forking a thread\n\n");
+	fprintf(stderr,"--progress-thread (GPU only): 1 for launching one thread per rank dedicated solely to progress, 0 to use the default CPU Polling if --with-prpgress was enabled \n\n ");
+	fprintf(stderr,"--min-bytes: Desired minimum number of bytes\n\n");
+	fprintf(stderr,"--max-bytes: Desired maximum number of bytes\n\n");
+	fprintf(stderr,"--compute-bound: Flag to indicate compute-bound benchmark\n\n");
+	fprintf(stderr,"--memory-mode: Mode for memory-bound operations (triad, copy, scale, add)\n\n");
+	fprintf(stderr,"Example:\n mpirun -np 36 ./overlapX --dim=2 --ratio=100 --dev=0 --with-progress=1 --min-bytes=1024 --max-bytes=1048576 --compute-bound=0 --memory-mode=triad\n\n");
 }
 
 size_t parse_size(const char* s){
@@ -212,7 +212,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
 		} else if(dim==1){
 			printf("\nRunning 1D benchmark on CPU with ranks grid %d\n", dims[0]);
 		}
-		printf("With manual progress: %s\n", do_progress ? "Yes" : "No");
+		printf("With custom progress thread: %s\n", do_progress ? "Yes" : "No");
 		printf("Compute-bound benchmark: %s\n", compute_bound ? "Yes" : "No");
 		if (!compute_bound) {
 			printf("Memory-bound mode: %s\n", memory_mode == MEMORY_MODE_TRIAD ? "Triad" : memory_mode == MEMORY_MODE_COPY ? "Copy" : memory_mode == MEMORY_MODE_SCALE ? "Scale" : "Add");
@@ -451,7 +451,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 			} else if(dim==1){
 				printf("\nRunning 1D benchmark on GPU with ranks grid %d\n", dims[0]);
 			}
-			printf("With manual progress: %s\n", do_progress ? "Yes" : "No");
+			printf("With manual progress (CPU Polling): %s\n", do_progress ? "Yes" : "No");
 			if(do_progress)
 				printf("Enable progress thread: %s\n", enable_thread ? "Yes" : "No");
 			printf("Compute-bound: %s\n", compute_bound ? "Yes" : "No");
