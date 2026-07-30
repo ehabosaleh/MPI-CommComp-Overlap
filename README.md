@@ -1,33 +1,46 @@
-# HIDE-MPI: A Multidimensional Benchmark for Evaluating MPI Computation–Communication Overlap on CPUs and GPUs Systems
+# MPI Communication-Computation Overlap Benchmark (MPI-CCOB): A Multidimensional Benchmark for Evaluating MPI Computation–Communication Overlap on CPUs and GPUs Systems
 
-HIDE-MPI measures how much communication can be hidden behind computation when using nonblocking MPI operations (MPI_Isend, MPI_Irecv, MPI_Waitall) in neighbor-exchange patterns (1D, 2D, 3D). The benchmark supports CPU-only and GPU-aware MPI builds and includes instrumentation to detect whether GPU communication is performed without host staging (GPUDirect / NVLink) and to evaluate MPI asynchronous progress behavior.
+MPI-CCOB measures how much communication can be hidden behind computation when using non-blocking MPI operations (MPI_Isend, MPI_Irecv) in neighbor-exchange patterns (1D, 2D, 3D). The benchmark supports CPU-only and GPU-aware MPI. 
 
-## Key goals:
-- Quantify communication/computation overlap in realistic neighbor-exchange kernels.
-- Compare pure communication, pure computation and combined run-times and compute an overlap metric.
-- Support GPU-enabled runs and detect GPU-aware MPI capabilities.
+MPI-CCOB reports several performance metrics, including pure-communication time, concurrent-phase time, requested and measured computation-to-communication ratios, overlap ratio, and average overlap ratio along with its standard deviation.
 
 
-## For each process, the benchmark runs three phases:
+## Measurement Methodology
 
-1. **Pure communication**  
-2. **Pure computation**  
-3. **Communication + computation combined**
+For each message size, every MPI process participates in two measurement phases:
 
-Using these timings, the benchmark computes the overlap ratio:
+1. **Pure-communication phase:** Measures the completion time of the non-blocking communication without concurrent computation.
+2. **Concurrent phase:** Performs the same non-blocking communication while executing the selected CPU or GPU workload.
+
+The computation time is measured separately during the concurrent phase. The overlap ratio is then calculated from:
+
+- \(t_{\mathrm{comm}}\): pure-communication time
+- \(t_{\mathrm{comp}}\): computation time
+- \(t_{\mathrm{ovlp}}\): concurrent-phase time
+- \(t_{\min}=\min(t_{\mathrm{comm}},t_{\mathrm{comp}})\)
 
 $$
-\text{overlap} = 100 \times 
-\frac{\max\left(0,\; \min\left(t_{\text{pure}} + t_{\text{comp}} - t_{\text{ovrl}},\; t_{\min}\right)\right)}
-     {t_{\min}},
-\quad
-t_{\min} = \min\left(t_{\text{pure}},\; t_{\text{comp}}\right)
+R_{\mathrm{ovlp}}
+=
+100 \times
+\frac{
+\max\left(
+0,\;
+\min\left(
+t_{\mathrm{comm}} + t_{\mathrm{comp}} - t_{\mathrm{ovlp}},
+t_{\min}
+\right)
+\right)
+}{
+t_{\min}
+}.
 $$
 
 Interpretation:
 
-- **0%** → no overlap (communication and computation are serialized)  
-- **100%** → full overlap (communication fully hidden behind compute)
+- **0%:** No effective overlap; communication and computation are effectively serialized.
+- **Between 0% and 100%:** Partial overlap.
+- **100%:** Maximum achievable overlap; the shorter operation is completely hidden by the longer one.
 
 ---
 
