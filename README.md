@@ -1,9 +1,12 @@
-# MPI Communication-Computation Overlap Benchmark (MPI-CCOB): A Multidimensional Benchmark for Evaluating MPI Computation–Communication Overlap on CPUs and GPUs Systems
+# MPI Communication-Computation Overlap Benchmark (MPI-CCOB)
+MPI-CCOB is a multidimensional benchmark for evaluating MPI computation–communication overlap on CPUs and GPUs systems.
+measures how much communication can be hidden behind computation when using non-blocking MPI operations (MPI_Isend, MPI_Irecv) in neighbor-exchange patterns (1D, 2D, 3D). The benchmark supports CPU-only and GPU-aware MPI. 
 
-MPI-CCOB measures how much communication can be hidden behind computation when using non-blocking MPI operations (MPI_Isend, MPI_Irecv) in neighbor-exchange patterns (1D, 2D, 3D). The benchmark supports CPU-only and GPU-aware MPI. 
+- MPI-CCOB reports several performance metrics, including pure-communication time, concurrent-phase time, requested and measured computation-to-communication ratios, overlap ratio, and average overlap ratio along with its standard deviation.
 
-MPI-CCOB reports several performance metrics, including pure-communication time, concurrent-phase time, requested and measured computation-to-communication ratios, overlap ratio, and average overlap ratio along with its standard deviation.
-
+- For GPU runs, use a GPU-aware MPI (Open MPI built with CUDA support, MVAPICH2-GDR, MPICH with device support, vendor MPI with GPUDirect). The benchmark tries to detect whether GPU buffers are transferred without host staging.
+  
+- On some MPI implementations (MPICH), asynchronous progress can be toggled via environment variables (e.g. MPIR_CVAR_ASYNC_PROGRESS=1). Try toggling async progress to observe its effect on measured overlap.
 
 ## Measurement Methodology
 
@@ -60,8 +63,6 @@ Options (common)
 - --progress-thread=0|1 (GPU only): 1 for launching one thread per rank dedicated solely to progress, 0 to use the default CPU Polling if --with-prpgress was enabled.
 - --help                : show usage
 
-## GPU considerations
-- For GPU runs, use a GPU-aware MPI (Open MPI built with CUDA support, MVAPICH2-GDR, MPICH with device support, vendor MPI with GPUDirect). The benchmark tries to detect whether GPU buffers are transferred without host staging.
-- On some MPI implementations (MPICH), asynchronous progress can be toggled via environment variables (e.g. MPIR_CVAR_ASYNC_PROGRESS=1). Try toggling async progress to observe its effect on measured overlap.
+
 
 
