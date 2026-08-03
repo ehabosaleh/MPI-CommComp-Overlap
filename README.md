@@ -52,7 +52,7 @@ Running the benchmark
 A typical run (example):
 
 ```sh
-mpirun -np <num-ranks> ./bin/overlapX --dim=2 --ratio=100 --dev=0 --with-progress=1 --progress-thread=1 --compute-bound=0 --memory-mode=triad
+mpirun -np <num-ranks> ./bin/overlapX --dim=2 --ratio=100 --dev=0 --with-progress=1 --compute-bound=0 --memory-mode=triad
 ```
 
 Options (common)
