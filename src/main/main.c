@@ -1,4 +1,4 @@
-#include "nmpm.h"
+#include "ccob.h"
 
 int main(int argc, char *argv[]){
     int dim = DIM;
