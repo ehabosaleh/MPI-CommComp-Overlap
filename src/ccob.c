@@ -405,7 +405,7 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 		gpu_inner_iters=calibrate_inner_iter(d_a,stream,grid,block,VECTOR_DIM_COMP,50,&measured_unit_us);
 	}
 	else{
-		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,elems_per_pass,max_elems,50,memory_mode);
+		mem_cal=calibrate_memory_bound_kernel(d_c,d_a,d_b,stream,grid,block,elems_per_pass,max_elems,400,memory_mode);
 		/*
 		if (rank == 0) {
     		printf("elems_per_pass = %zu\n", elems_per_pass);
