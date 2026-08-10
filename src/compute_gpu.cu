@@ -165,29 +165,29 @@ gpu_memory_calibration_t calibrate_memory_bound_kernel(float *d_c, const float *
     return cal;
 }
 
-__global__ void compute_bound_kernel(float*d_a, size_t n, int inner_iters){
+__global__ void compute_bound_kernel(float*d_a, size_t n, int inner_iters, int repeat){
 
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     size_t stride = blockDim.x * gridDim.x;
     for (size_t i=idx; i<n; i+=stride){
         float x=d_a[i];
-        //for(int r=0;r<repeat;r++){
+        for(int r=0;r<repeat;r++){
             #pragma unroll 1
             for(int k=0;k<inner_iters;k++) {
                 x=x*1.000001f+0.000001f;
             }
-        //}
+        }
 
         d_a[i]=x;
     }
 }
-double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int inner_iters,progress_thread_data_t *progress_data){
+double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid, int block,size_t n,int inner_iters, int repeat,progress_thread_data_t *progress_data){
     float time_ms=0.0f;
     cudaEvent_t start,stop;
     CHECK_CUDA_ERROR(cudaEventCreate(&start));
     CHECK_CUDA_ERROR(cudaEventCreate(&stop));
     CHECK_CUDA_ERROR(cudaEventRecord(start,stream));
-    compute_bound_kernel<<<grid,block,0,stream>>>(d_a,n,inner_iters);
+    compute_bound_kernel<<<grid,block,0,stream>>>(d_a,n,inner_iters,repeat);
     CHECK_CUDA_ERROR(cudaPeekAtLastError());
     CHECK_CUDA_ERROR(cudaEventRecord(stop,stream));
     if(progress_data!=NULL&&!progress_data->is_thread&&progress_data->do_progress){
@@ -210,7 +210,7 @@ double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid,
     return (double)time_ms*1000.0;
 }
 int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us, double* measured_unit_us){
-    //const int calibration_repeat = 100;
+    const int calibration_repeat = 100;
     int low=1;
     int high=20000;
     int best_inner_iters=1;
@@ -219,26 +219,26 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     int rank=0;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     for(int i=0;i<1000;i++){
-        measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,100, NULL);
+        measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,100,calibration_repeat, NULL);
     }
 
     for (int iter=0;iter<100;iter++){
         int mid=low+(high-low)/2;
 
-        double total_us=measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,mid,NULL);
+        double total_us=measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,mid,calibration_repeat, NULL);
 
-        //double unit_us=total_us/(double)calibration_repeat;
+        double unit_us=total_us/(double)calibration_repeat;
         //unit_us is the cost of a single repeat; mid represents the corresponding inner_repeat//
          
-        double error=fabs(total_us-target_unit_us);
+        double error=fabs(unit_us-target_unit_us);
 
         if(error<best_error){
             best_error=error;
             best_inner_iters=mid;
-            best_unit_us=total_us;
+            best_unit_us=unit_us;
         }
 
-        if(total_us<target_unit_us) {
+        if(unit_us<target_unit_us) {
             low=mid+1;
         }else{
             high=mid-1;
@@ -259,8 +259,9 @@ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_
         return 0.0;
     }
     if(compute_bound){
+        int repeat=(int)ceil(latency_us/unit_us);
         uint64_t total_inner_iters=(uint64_t)ceil(latency_us/unit_us)*inner_iters;
-        return measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,total_inner_iters,progress_data);
+        return measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,total_inner_iters,repeat,progress_data);
     }else{ 
         int passes=(int)ceil(latency_us/cal.measured_unit_us);
 
