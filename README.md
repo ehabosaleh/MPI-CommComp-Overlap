@@ -52,13 +52,13 @@ Running the benchmark
 A typical run (example):
 
 ```sh
-mpirun -np <num-ranks> ./bin/overlapX --dim=2 --ratio=100 --dev=0 --with-progress=1 --compute-bound=0 --memory-mode=triad
+mpirun -np <num-ranks> ./bin/overlapX --dim=2 --ratio=100 --dev=cpu --with-progress=1 --compute-bound=0 --memory-mode=triad
 ```
 
 Options (common)
 - --dim=1|2|3           : neighbor exchange dimensionality (1D/2D/3D)
 - --ratio=<percent>     : target computation-to-pure-communication ratio (percent)
-- --dev=0|1             : 0 for CPU, 1for GPU
+- --dev=CPU|GPU         :  target device
 - --with-prpgress=0|1   : 0 to disable progress thread, 1 to fork progress thread for each CPU rank. When using GPUs, it enables CPU Polling without forking a thread.
 - --progress-thread=0|1 (GPU only): 1 for launching one thread per rank dedicated solely to progress, 0 to use the default CPU Polling if --with-prpgress was enabled.
 - --help                : show usage
