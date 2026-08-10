@@ -4,7 +4,7 @@ void usage(char *prog_name) {
 	fprintf(stderr,"Usage: %s [--dim=N] [--ratio=P] [--dev=0/1] [--with-progress=0/1] [--progress-thread=0/1] [--min-bytes=N] [--max-bytes=N] [--compute-bound=0/1] [--memory-mode=MODE]\n\n", prog_name);
 	fprintf(stderr,"--dim: 1 for 1D grid, 2 for 2D grid, 3 for 3D grid\n\n");
 	fprintf(stderr,"--ratio: Desired computation to pure communication time ratio (e.g., 50 for 50%%)\n\n");
-	fprintf(stderr,"--dev: 0 to run the benchmark on the CPU or 1 to run the benchmark on the GPU\n\n");
+	fprintf(stderr,"--dev: CPU to run the benchmark on the CPU or GPU to run the benchmark on the GPU\n\n");
 	fprintf(stderr,"--with-progress: 0 to disable progress thread, 1 to fork progress thread for each CPU rank. When using GPUs, it enables CPU Polling without forking a thread\n\n");
 	fprintf(stderr,"--progress-thread (GPU only): 1 for launching one thread per rank dedicated solely to progress, 0 to use the default CPU Polling if --with-prpgress was enabled \n\n ");
 	fprintf(stderr,"--min-bytes: Desired minimum number of bytes\n\n");
