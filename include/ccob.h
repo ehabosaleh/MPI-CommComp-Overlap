@@ -1,5 +1,5 @@
-#ifndef NMPM_H
-#define NMPM_H
+#ifndef CCOB_H
+#define CCOB_H
 
 #include<stdio.h>
 #include<stdlib.h>
