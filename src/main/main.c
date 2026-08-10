@@ -27,9 +27,13 @@ int main(int argc, char *argv[]){
             }
         }
         else if(strncasecmp(argv[i],"--dev=",6)==0){
-            dev=atoi(argv[i]+6);
-            if(dev!=0&&dev!=1){
-                fprintf(stderr, "Invalid device specified. Use 0 for CPU or 1 for GPU.\n");
+            char* dev_str = argv[i] + 6;
+            if (strcasecmp(dev_str, "cpu") == 0) {
+                dev = 0;
+            } else if (strcasecmp(dev_str, "gpu") == 0) {
+                dev = 1;
+            } else {
+                fprintf(stderr, "Invalid device specified. Use 'cpu' or 'gpu'.\n");
                 return -1;
             }
         }
