@@ -2,7 +2,7 @@
 #define COMPUTE_GPU_CUH
 
 #include<cuda_runtime.h>
-#include"nmpm.h"
+#include"ccob.h"
 
 #ifdef __cplusplus
 extern "C" {
