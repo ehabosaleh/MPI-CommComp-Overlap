@@ -142,7 +142,22 @@ int main(int argc, char *argv[]){
     
     MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-
+    if(rank==0){
+        if(dim==2){
+            if(sqrt(size)*sqrt(size)!=size){
+                fprintf(stderr,"Number of processes must be a perfect square for 2D grid\n");
+                MPI_Abort(MPI_COMM_WORLD,1);
+            }
+        }
+        if(dim==3){
+            if(cbrt(size)*cbrt(size)*cbrt(size)!=size){
+                fprintf(stderr,"Number of processes must be a perfect cube for 3D grid\n");
+                MPI_Abort(MPI_COMM_WORLD,1);
+            }
+        }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    
     if(dev==0){
          run_overlap_benchmark(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,compute_bound,memory_mode,do_progress);
     }
