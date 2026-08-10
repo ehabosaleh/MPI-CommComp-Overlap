@@ -1,4 +1,4 @@
-#include"nmpm.h"
+#include"ccob.h"
 
 void usage(char *prog_name) {
 	fprintf(stderr,"Usage: %s [--dim=N] [--ratio=P] [--dev=0/1] [--with-progress=0/1] [--progress-thread=0/1] [--min-bytes=N] [--max-bytes=N] [--compute-bound=0/1] [--memory-mode=MODE]\n\n", prog_name);
