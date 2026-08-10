@@ -260,8 +260,9 @@ double compute_on_gpu(float*d_a, cudaStream_t stream, int grid, int block, size_
     }
     if(compute_bound){
         int repeat=(int)ceil(latency_us/unit_us);
-        uint64_t total_inner_iters=(uint64_t)ceil(latency_us/unit_us)*inner_iters;
-        return measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,total_inner_iters,repeat,progress_data);
+        //uint64_t total_inner_iters=(uint64_t)ceil(latency_us/unit_us)*inner_iters;
+        
+	return measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,inner_iters,repeat,progress_data);
     }else{ 
         int passes=(int)ceil(latency_us/cal.measured_unit_us);
 
