@@ -250,7 +250,7 @@ int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,siz
     }
 
     *measured_unit_us=best_unit_us;
-    //printf("Rank %d: Calibrated inner iterations: %d (measured unit time: %.3f us, target: %.3f us)\n",rank, best_inner_iters, best_unit_us, target_unit_us);
+    printf("Rank %d: Calibrated inner iterations: %d (measured unit time: %.3f us, target: %.3f us)\n",rank, best_inner_iters, best_unit_us, target_unit_us);
     fflush(stdout);
     return best_inner_iters; 
 }
