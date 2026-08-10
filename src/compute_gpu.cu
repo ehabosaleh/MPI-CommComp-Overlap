@@ -212,13 +212,13 @@ double measure_gpu_compute_bound_kernel(float*d_a,cudaStream_t stream, int grid,
 int calibrate_inner_iter(float *d_a, cudaStream_t stream,int grid, int block,size_t n,double target_unit_us, double* measured_unit_us){
     const int calibration_repeat = 100;
     int low=1;
-    int high=20000;
+    int high=10000;
     int best_inner_iters=1;
     double best_error=1e30;
     double best_unit_us=0.0;
     int rank=0;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    for(int i=0;i<1000;i++){
+    for(int i=0;i<100;i++){
         measure_gpu_compute_bound_kernel(d_a,stream,grid,block,n,100,calibration_repeat, NULL);
     }
 
