@@ -11,7 +11,7 @@ void usage(char *prog_name) {
 	fprintf(stderr,"--max-bytes: Desired maximum number of bytes\n\n");
 	fprintf(stderr,"--compute-bound: Flag to indicate compute-bound benchmark\n\n");
 	fprintf(stderr,"--memory-mode: Mode for memory-bound operations (triad, copy, scale, add)\n\n");
-	fprintf(stderr,"Example:\n mpirun -np 36 ./overlapX --dim=2 --ratio=100 --dev=0 --with-progress=1 --min-bytes=1048576 --max-bytes=67108864 --compute-bound=0 --memory-mode=triad\n\n");
+	fprintf(stderr,"Example:\n mpirun -np 36 ./overlapX --dim=2 --ratio=100 --dev=cpu --with-progress=1 --min-bytes=1048576 --max-bytes=67108864 --compute-bound=0 --memory-mode=triad\n\n");
 }
 
 size_t parse_size(const char* s){
