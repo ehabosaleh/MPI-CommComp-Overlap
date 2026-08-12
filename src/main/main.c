@@ -140,7 +140,8 @@ int main(int argc, char *argv[]){
             }
         }
         if(dim==3){
-            if(cbrt(size)*cbrt(size)*cbrt(size)!=size){
+            int grid_size = (int)llround(cbrt((double)size));
+            if((long long)grid_size * grid_size * grid_size != size){
                 input_error_msg = "Number of processes must be a perfect cube for 3D grid";
             }
         }
