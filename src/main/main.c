@@ -53,13 +53,6 @@ int main(int argc, char *argv[]){
                 break;
             }
         }
-        else if(strncasecmp(argv[i],"--dev=",6)==0){
-            dev=atoi(argv[i]+6);
-            if(dev!=0&&dev!=1){
-                input_error_msg = "Invalid device specified. Use 0 for CPU or 1 for GPU.";
-                break;
-            }
-        }
         else if(strncmp(argv[i],"--ratio=",8)==0){
             compToPureCommRatio=atoi(argv[i]+8);
             if(compToPureCommRatio<0){
