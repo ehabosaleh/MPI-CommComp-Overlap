@@ -118,12 +118,10 @@ int main(int argc, char *argv[]){
     }
     if(min_bytes>max_bytes){
         input_error_msg = "Maximum message size must be larger than minimum message size";
-        break;
     }
     if(dev==1){
         #ifndef HAVE_CUDA
             input_error_msg = "CUDA is not installed";
-            break;
         #endif
     }
 
@@ -164,7 +162,7 @@ int main(int argc, char *argv[]){
         MPI_Finalize();
         return -1;
     }
-    
+
     if(dev==0){
          run_overlap_benchmark(rank,size,dim,compToPureCommRatio,min_bytes,max_bytes,compute_bound,memory_mode,do_progress);
     }
