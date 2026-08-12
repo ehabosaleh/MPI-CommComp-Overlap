@@ -7,6 +7,7 @@
 #include<mpi.h>
 #include<string.h>
 #include<errno.h>
+#include<limits.h>
 #include"compute_cpu.h"
 
 #ifdef __cplusplus
