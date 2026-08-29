@@ -3,6 +3,7 @@ build-*/
 
 results/
 results-*/
+profiles/
 
 CMakeFiles/
 CMakeCache.txt
