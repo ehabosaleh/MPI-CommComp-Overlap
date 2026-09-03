@@ -67,7 +67,7 @@ void free_vector(void){
 }
 
 int main(){
-    size_t n=100000000;
+    size_t n=1000000;
     int device_num=0;
     int device_count=0;
 
