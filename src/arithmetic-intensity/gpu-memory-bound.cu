@@ -111,8 +111,7 @@ int main(int argc, char **argv){
     }else if(strcmp(mode_str,"add")==0){
         mode=MEMORY_MODE_ADD;
     }else{
-        fprintf(stderr,"Error: unknown memory mode %s\n",mode_str);
-        return 1;
+         mode=MEMORY_MODE_TRIAD;
     }   
     int device_num=0;
     int device_count=0;
