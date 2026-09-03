@@ -533,9 +533,9 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 			cudaDeviceSynchronize();
             int req_count=0;
 			MPI_Barrier(MPI_COMM_WORLD);
-			
+
 			if (iter<MAX_ITER-1){
-				nvtxRangePushA("OVERLAP MEASUREMENT");
+				nvtxRangePushA("OVERLAP_MEASUREMENT");
 			}
             double init_time = MPI_Wtime();
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
