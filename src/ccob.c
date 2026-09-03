@@ -290,9 +290,6 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
         for (iter = 0; iter < MAX_ITER; iter++) {
             int req_count = 0;
 			MPI_Barrier(MPI_COMM_WORLD);
-			if (iter<MAX_ITER-1){
-				nvtxRangePushA("OVERLAP MEASUREMENT");
-			}
 
             double init_time = MPI_Wtime();
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);	
@@ -311,10 +308,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
             	MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
 			}
             t_ovrl=MPI_Wtime()-init_time;
-			if (iter<MAX_ITER-1){
-				nvtxRangePop();
-			}
-			
+
             if(iter>=SKIP){
                 t_comp_total += t_comp;
                 t_ovrl_total += t_ovrl;
@@ -539,7 +533,10 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
 			cudaDeviceSynchronize();
             int req_count=0;
 			MPI_Barrier(MPI_COMM_WORLD);
-
+			
+			if (iter<MAX_ITER-1){
+				nvtxRangePushA("OVERLAP MEASUREMENT");
+			}
             double init_time = MPI_Wtime();
             post_sendrecv(left,right,front,back,bottom,top,dim,send_buffers,recv_buffers,reqs,&req_count,local_N);
             if(do_progress&&enable_thread){
@@ -558,7 +555,10 @@ int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRat
             	MPI_Waitall(req_count,reqs,MPI_STATUSES_IGNORE);
 			}
             t_ovrl=MPI_Wtime()-init_time;
-
+			
+			if (iter<MAX_ITER-1){
+				nvtxRangePop();
+			}
         	if(iter>=SKIP){
                 t_comp_total += t_comp;
                 t_ovrl_total += t_ovrl;
