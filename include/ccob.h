@@ -9,6 +9,7 @@
 #include<errno.h>
 #include<limits.h>
 #include"compute_cpu.h"
+#include <nvtx3/nvToolsExt.h>
 
 #ifdef __cplusplus
 extern "C" {
