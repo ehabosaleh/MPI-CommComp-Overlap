@@ -188,11 +188,12 @@ void * progress_thread_func(void *arg) {
     }
     */
     while(!atomic_load_int(&req->terminate)) {
-        if (!atomic_load_int(&req->active)) {
+        
+	if (!atomic_load_int(&req->active)) {
             sched_yield();
             continue;
         }
-
+	
         while (!req->stop_flag) {
             MPI_Testall(req->num_requests, req->requests, &req->stop_flag, MPI_STATUSES_IGNORE);
         }
