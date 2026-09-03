@@ -9,13 +9,14 @@
 #include<errno.h>
 #include<limits.h>
 #include"compute_cpu.h"
-#include <nvtx3/nvToolsExt.h>
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #if HAVE_CUDA
+#include <nvtx3/nvToolsExt.h>
 #include"compute_gpu.cuh"
 int run_overlap_benchmark_gpu(int rank, int size, int dim, int compToPureCommRatio, size_t min_bytes,size_t max_bytes, int do_progress, int enable_thread, int compute_bound, memory_mode_t memory_mode);
 #endif
