@@ -66,6 +66,6 @@ Options (common)
 To run the benchmark with Nsight Systems to capture profiling data during last iteration of overlap on GPU systems, use the following command:
 
 ```sh
-NSYS_NVTX_PROFILER_REGISTER_ONLY=0 mpirun -np <num_processes> nsys profile --trace=cuda,nvtx,mpi,ucx --capture-range=nvtx  --capture-range-end=stop-shutdown --nvtx-capture=OVERLAP_MEASUREMENT --output='../profiles/' ./bin/overlapX [options]
+NSYS_NVTX_PROFILER_REGISTER_ONLY=0 mpirun -np <num_processes> nsys profile --trace=cuda,nvtx,mpi,ucx --capture-range=nvtx  --capture-range-end=stop-shutdown --nvtx-capture=OVERLAP_MEASUREMENT --output='../profiles/profile_%h_rank%q{PMI_RANK}' ./bin/overlapX [options]
 ```
 
