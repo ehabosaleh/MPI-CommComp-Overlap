@@ -63,6 +63,9 @@ Options (common)
 - --progress-thread=0|1 (GPU only): 1 for launching one thread per rank dedicated solely to progress, 0 to use the default CPU Polling if --with-prpgress was enabled.
 - --help                : show usage
 
+To run the benchmark with Nsight Systems to capture profiling data during last iteration of overlap on GPU systems, use the following command:
 
-
+```sh
+NSYS_NVTX_PROFILER_REGISTER_ONLY=0 mpirun -np <num_processes> nsys profile --trace=cuda,nvtx,mpi,ucx --capture-range=nvtx  --capture-range-end=stop-shutdown --nvtx-capture=OVERLAP_MEASUREMENT --output='../profiles/' ./bin/overlapX [options]
+```
 
