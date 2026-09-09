@@ -6,7 +6,7 @@ measures how much communication can be hidden behind computation when using non-
 
 - For GPU runs, use a GPU-aware MPI (Open MPI built with CUDA support, MVAPICH2-GDR, MPICH with device support, vendor MPI with GPUDirect). The benchmark tries to detect whether GPU buffers are transferred without host staging.
   
-- On some MPI implementations (MPICH), asynchronous progress can be toggled via environment variables (e.g. MPIR_CVAR_ASYNC_PROGRESS=1). Try toggling async progress to observe its effect on measured overlap.
+- On some MPI implementations (MPICH), asynchronous progress can be toggled via environment variables (e.g. MPIR_CVAR_ASYNC_PROGRESS=1). Try toggling async progress to observe its effect on measured overlap(Open MPI does not provide support for asynchronous progress thread).
 
 ## Measurement Methodology
 
@@ -48,8 +48,7 @@ cmake ..
 make -j
 ```
 
-Running the benchmark
-A typical run (example):
+Running the benchmark A typical run (example):
 
 ```sh
 mpirun -np <num-ranks> ./bin/overlapX --dim=2 --ratio=100 --dev=cpu --with-progress=1 --compute-bound=0 --memory-mode=triad
@@ -66,6 +65,5 @@ Options (common)
 To run the benchmark with Nsight Systems to capture profiling data during last iteration of overlap on GPU systems, use the following command:
 
 ```sh
-mpirun -np <num_processes> nsys profile --trace=cuda,nvtx,mpi,ucx --capture-range=nvtx  --capture-range-end=stop-shutdown --nvtx-capture=OVERLAP_MEASUREMENT --env-var=NSYS_NVTX_PROFILER_REGISTER_ONLY=0 --output='../profiles/profile_%h_rank%q{PMI_RANK}' ./bin/overlapX [options]
+NSYS_NVTX_PROFILER_REGISTER_ONLY=0 mpirun -np <num_processes> nsys profile --trace=cuda,nvtx,mpi,ucx --capture-range=nvtx  --capture-range-end=stop-shutdown --nvtx-capture=OVERLAP_MEASUREMENT --output='../profiles/' ./bin/overlapX [options]
 ```
-
