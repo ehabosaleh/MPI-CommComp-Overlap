@@ -306,11 +306,22 @@ void compute_on_host(double latency_sec, int compute_bound, memory_mode_t memory
     } while ((now - start) < latency_sec);
 }
 size_t get_free_memory(void){
-    long pages=sysconf(_SC_AVPHYS_PAGES);
-    long page_size=sysconf(_SC_PAGESIZE);
+#if defined(_SC_AVPHYS_PAGES)
+    long pages = sysconf(_SC_AVPHYS_PAGES);
+#elif defined(_SC_PHYS_PAGES)
+    long pages = sysconf(_SC_PHYS_PAGES);
+#else
+    long pages = -1;
+#endif
 
-    if (pages<0||page_size<0) {
+#if defined(_SC_PAGESIZE)
+    long page_size = sysconf(_SC_PAGESIZE);
+#else
+    long page_size = getpagesize();
+#endif
+
+    if (pages < 0 || page_size < 0) {
         return 0;
     }
-    return (size_t)pages*(size_t)page_size;
+    return (size_t)pages * (size_t)page_size;
 }
