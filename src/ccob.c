@@ -199,7 +199,7 @@ int run_overlap_benchmark(int rank, int size, int dim, int compToPureCommRatio, 
     //double  t_pure_global=0.0, t_compute_global=0.0, t_ovrl_global=0.0;
 	double t_comp=0.0,t_ovrl=0.0;
 	int dims[3], coords[3];
-	int num_neighbors;
+	int num_neighbors = 0;
 	int left=MPI_PROC_NULL, right=MPI_PROC_NULL, front=MPI_PROC_NULL, back=MPI_PROC_NULL, bottom=MPI_PROC_NULL, top=MPI_PROC_NULL;
 	struct {
     	double value;
