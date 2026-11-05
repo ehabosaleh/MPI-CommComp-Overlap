@@ -305,6 +305,7 @@ void compute_on_host(double latency_sec, int compute_bound, memory_mode_t memory
 
     } while ((now - start) < latency_sec);
 }
+
 size_t get_free_memory(void){
 #if defined(_SC_AVPHYS_PAGES)
     long pages = sysconf(_SC_AVPHYS_PAGES);
