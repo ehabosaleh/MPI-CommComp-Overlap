@@ -4,7 +4,7 @@ measures how much communication can be hidden behind computation when using non-
 
 - MPI-CCOB reports several performance metrics, including pure-communication time, concurrent-phase time, requested and measured computation-to-communication ratios, overlap ratio, and average overlap ratio along with its standard deviation.
 
-- For GPU runs, use a GPU-aware MPI (Open MPI built with CUDA support, MVAPICH2-GDR, MPICH with device support, vendor MPI with GPUDirect). The benchmark tries to detect whether GPU buffers are transferred without host staging.
+- For GPU runs, use a GPU-aware MPI (Open MPI built with CUDA support, MVAPICH2-GDR, MPICH with device support, vendor MPI with GPUDirect).
   
 - On some MPI implementations (MPICH), asynchronous progress can be toggled via environment variables (e.g. MPIR_CVAR_ASYNC_PROGRESS=1). Try toggling async progress to observe its effect on measured overlap(Open MPI does not provide support for asynchronous progress thread).
 
