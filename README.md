@@ -59,7 +59,7 @@ Options (common)
 - --ratio=<percent>     : target computation-to-pure-communication ratio (percent)
 - --dev=CPU|GPU         :  target device
 - --with-prpgress=0|1   : 0 to disable progress thread, 1 to fork progress thread for each CPU rank. When using GPUs, it enables CPU Polling without forking a thread.
-- --progress-thread=0|1 (GPU only): 1 for launching one thread per rank dedicated solely to progress, 0 to use the default CPU Polling if --with-prpgress was enabled.
+- --progress-thread=0|1 (GPU only): 1 for launching one thread per rank dedicated solely to progress, 0 to use the default CPU Polling if --with-progress was enabled.
 - --help                : show usage
 
 To run the benchmark with Nsight Systems to capture profiling data during last iteration of overlap on GPU systems, use the following command:
