@@ -70,7 +70,7 @@ mpirun -np <num_processes> nsys profile --trace=cuda,nvtx,mpi,ucx --capture-rang
 ## Preferred citation 
 Experiments and results presented in the following paper:
 ```bibtex
-@INPROCEEDINGS {,
+@INPROCEEDINGS {mpiccob,
 author = { Saleh, Ehab and Weidendorfer, Josef and Schulz, Martin },
 booktitle = { SC26-W: Workshops of the International Conference for High Performance Computing, Networking, Storage and Analysis },
 title = {{ MPI-CCOB: Benchmarking MPI Overlap on CPU and GPU Systems }},
